@@ -474,4 +474,10 @@ async def anilist_menu(ctx, event_list: list,
             next_page = page - 1
         return await anilist_menu(ctx, event_list, message=message, page=next_page, timeout=timeout)
     else:
-        return await message.clear_reactions()
+        try:
+            await message.clear_reactions()
+        except discord.Forbidden:
+            await message.remove_reaction("⬅", ctx.guild.me)
+            await message.remove_reaction("❌", ctx.guild.me)
+            await message.remove_reaction("➡", ctx.guild.me)
+        return None
