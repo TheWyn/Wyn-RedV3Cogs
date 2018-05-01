@@ -418,12 +418,12 @@ class AniSearch:
             await ctx.send('No users were found or there was an error in the process')
 
 
-async def anilist_menu(ctx, event_list: list,
+async def anilist_menu(ctx, anime_list: list,
                        message: discord.Message = None,
                        page=0, timeout: int = 30):
     """menu control logic for this taken from
        https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
-    emb = event_list[page]
+    emb = anime_list[page]
     if not message:
         message = await ctx.send(embed=emb)
         await message.add_reaction("⬅")
@@ -456,11 +456,11 @@ async def anilist_menu(ctx, event_list: list,
                 await message.remove_reaction("➡", ctx.author)
             except discord.NotFound:
                 pass
-        if page == len(event_list) - 1:
+        if page == len(anime_list) - 1:
             next_page = 0  # first item
         else:
             next_page = page + 1
-        return await anilist_menu(ctx, event_list, message=message, page=next_page, timeout=timeout)
+        return await anilist_menu(ctx, anime_list, message=message, page=next_page, timeout=timeout)
     elif react == "back":
         perms = message.channel.permissions_for(ctx.guild.me)
         if perms.manage_messages:
@@ -469,10 +469,10 @@ async def anilist_menu(ctx, event_list: list,
             except discord.NotFound:
                 pass
         if page == 0:
-            next_page = len(event_list) - 1  # last item
+            next_page = len(anime_list) - 1  # last item
         else:
             next_page = page - 1
-        return await anilist_menu(ctx, event_list, message=message, page=next_page, timeout=timeout)
+        return await anilist_menu(ctx, anime_list, message=message, page=next_page, timeout=timeout)
     else:
         try:
             await message.clear_reactions()
