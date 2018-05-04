@@ -17,7 +17,6 @@ except ImportError:
 
 
 # Most of these scripts are from https://github.com/giampaolo/psutil/tree/master/scripts
-# noinspection SpellCheckingInspection,PyPep8Naming,PyPep8Naming
 class SysInfo:
     """Display system information for the machine running the bot"""
 
