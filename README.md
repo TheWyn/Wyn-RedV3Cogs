@@ -9,3 +9,4 @@ Cogs:
 ------
 
 * Anilist by [Jintaku](https://github.com/Jintaku/Jintaku-Cogs) ported to Red V3
+* Sysinfo by [Ritsu](https://github.com/ritsu/RitsuCogs) ported to Red V3
