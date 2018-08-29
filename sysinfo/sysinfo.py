@@ -5,7 +5,7 @@ import time
 import socket
 from socket import AF_INET, SOCK_STREAM, SOCK_DGRAM
 
-from discord.ext import commands
+from redbot.core import commands
 from redbot.core import checks
 
 try:
