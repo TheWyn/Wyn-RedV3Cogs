@@ -7,6 +7,8 @@ import aiohttp
 import discord
 from redbot.core import commands
 
+BaseCog = getattr(commands, "Cog", object)
+
 numbs = {
     "next": "➡",
     "back": "⬅",
@@ -130,7 +132,7 @@ query ($id: Int, $page: Int, $search: String) {
 '''
 
 
-class AniSearch:
+class AniSearch(BaseCog):
     """Search for anime, manga, characters and users using Anilist"""
 
     def __init__(self, bot):
