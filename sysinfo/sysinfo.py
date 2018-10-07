@@ -1,3 +1,5 @@
+from redbot.core import commands
+from redbot.core import checks
 import asyncio
 import os
 import datetime
@@ -5,31 +7,30 @@ import time
 import socket
 from socket import AF_INET, SOCK_STREAM, SOCK_DGRAM
 
-from redbot.core import commands
-from redbot.core import checks
+BaseCog = getattr(commands, "Cog", object)
 
 try:
     import psutil
-
     psutilAvailable = True
 except ImportError:
     psutilAvailable = False
 
 
 # Most of these scripts are from https://github.com/giampaolo/psutil/tree/master/scripts
-class SysInfo:
+# noinspection SpellCheckingInspection,PyPep8Naming,PyPep8Naming
+class Sysinfo(BaseCog):
     """Display system information for the machine running the bot"""
 
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(aliases=['sys'])
+    @commands.group(pass_context=True, aliases=['sys'])
     async def sysinfo(self, ctx):
         """Shows system information for the machine running the bot"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
-    @sysinfo.command()
+    @sysinfo.command(pass_context=True)
     @checks.is_owner()
     async def info(self, ctx, *args: str):
         """Summary of cpu, memory, disk and network information
@@ -130,16 +131,16 @@ class SysInfo:
             msg = "\n" + net_ios
         elif args[0].lower() == 'boot':
             msg = "\n" + boot_s
-        await self._say(ctx, msg)
+        await ctx.send(msg)
         return
 
-    @sysinfo.command()
+    @sysinfo.command(pass_context=True)
     @checks.is_owner()
     async def df(self, ctx):
         """File system disk space usage"""
 
         if len(psutil.disk_partitions(all=False)) == 0:
-            await self._say(ctx, "psutil could not find any disk partitions")
+            await ctx.send(ctx, "psutil could not find any disk partitions")
             return
 
         maxlen = len(max([p.device for p in psutil.disk_partitions(all=False)], key=len))
@@ -161,10 +162,10 @@ class SysInfo:
                 usage.percent,
                 part.fstype,
                 part.mountpoint)
-        await self._say(ctx, msg)
+        await ctx.send(msg)
         return
 
-    @sysinfo.command()
+    @sysinfo.command(pass_context=True)
     @checks.is_owner()
     async def free(self, ctx):
         """Amount of free and used memory in the system"""
@@ -191,179 +192,11 @@ class SysInfo:
             "",
             "",
             "")
-        await self._say(ctx, msg)
+        await ctx.send(msg)
         return
 
-    @sysinfo.command()
-    @checks.is_owner()
-    async def ifconfig(self, ctx):
-        """Network interface information"""
 
-        af_map = {
-            socket.AF_INET: 'IPv4',
-            socket.AF_INET6: 'IPv6',
-            psutil.AF_LINK: 'MAC',
-        }
-        duplex_map = {
-            psutil.NIC_DUPLEX_FULL: "full",
-            psutil.NIC_DUPLEX_HALF: "half",
-            psutil.NIC_DUPLEX_UNKNOWN: "?",
-        }
-        try:
-            stats = psutil.net_if_stats()
-        except PermissionError:
-            await ctx.send("Unable to access network information due to PermissionError")
-            return
-        io_counters = psutil.net_io_counters(pernic=True)
-        msg = ""
-        for nic, addrs in psutil.net_if_addrs().items():
-            msg += "\n{0}:".format(nic)
-            if nic in stats:
-                st = stats[nic]
-                msg += "\n    stats          : "
-                msg += "speed={0}MB, duplex={1}, mtu={2}, up={3}".format(
-                    st.speed, duplex_map[st.duplex], st.mtu,
-                    "yes" if st.isup else "no")
-            if nic in io_counters:
-                io = io_counters[nic]
-                msg += "\n    incoming       : "
-                msg += "bytes={0}, pkts={1}, errs={2}, drops={3}".format(
-                    io.bytes_recv, io.packets_recv, io.errin, io.dropin)
-                msg += "\n    outgoing       : "
-                msg += "bytes={0}, pkts={1}, errs={2}, drops={3}".format(
-                    io.bytes_sent, io.packets_sent, io.errout, io.dropout)
-            for addr in addrs:
-                msg += "\n    {0:<4}".format(af_map.get(addr.family, addr.family))
-                msg += " address   : {0}".format(addr.address)
-                if addr.broadcast:
-                    msg += "\n         broadcast : {0}".format(addr.broadcast)
-                if addr.netmask:
-                    msg += "\n         netmask   : {0}".format(addr.netmask)
-                if addr.ptp:
-                    msg += "\n      p2p       : {0}".format(addr.ptp)
-            msg += "\n"
-        await self._say(ctx, msg)
-        return
-
-    @sysinfo.command()
-    @checks.is_owner()
-    async def iotop(self, ctx):
-        """Snapshot of I/O usage information output by the kernel"""
-
-        if not hasattr(psutil.Process, "oneshot"):
-            await ctx.send("Platform not supported")
-            return
-
-        # first get a list of all processes and disk io counters
-        procs = [p for p in psutil.process_iter()]
-        for p in procs[:]:
-            try:
-                p._before = p.io_counters()
-            except psutil.Error:
-                procs.remove(p)
-                continue
-        disks_before = psutil.disk_io_counters()
-
-        # sleep some time
-        await asyncio.sleep(1)
-
-        # then retrieve the same info again
-        for p in procs[:]:
-            with p.oneshot():
-                try:
-                    p._after = p.io_counters()
-                    p._cmdline = ' '.join(p.cmdline())
-                    if not p._cmdline:
-                        p._cmdline = p.name()
-                    p._username = p.username()
-                except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
-                    procs.remove(p)
-        disks_after = psutil.disk_io_counters()
-
-        # finally calculate results by comparing data before and
-        # after the interval
-        for p in procs:
-            p._read_per_sec = p._after.read_bytes - p._before.read_bytes
-            p._write_per_sec = p._after.write_bytes - p._before.write_bytes
-            p._total = p._read_per_sec + p._write_per_sec
-
-        disks_read_per_sec = disks_after.read_bytes - disks_before.read_bytes
-        disks_write_per_sec = disks_after.write_bytes - disks_before.write_bytes
-
-        # sort processes by total disk IO so that the more intensive
-        # ones get listed first
-        processes = sorted(procs, key=lambda p: p._total, reverse=True)
-
-        # print results
-        template = "{0:<5} {1:<7} {2:11} {3:11} {4}\n"
-
-        msg = "Total DISK READ: {0} | Total DISK WRITE: {1}\n".format(
-            self._size(disks_read_per_sec), self._size(disks_write_per_sec))
-
-        msg += template.format("PID", "USER", "DISK READ", "DISK WRITE", "COMMAND")
-
-        for p in processes:
-            msg += template.format(
-                p.pid,
-                p._username[:7],
-                self._size(p._read_per_sec),
-                self._size(p._write_per_sec),
-                p._cmdline)
-        await self._say(ctx, msg)
-        return
-
-    @sysinfo.command()
-    @checks.is_owner()
-    async def meminfo(self, ctx):
-        """System memory information"""
-
-        msg = "\nMEMORY\n------\n"
-        msg += "{0}\n".format(self._sprintf_ntuple(psutil.virtual_memory()))
-        msg += "SWAP\n----\n"
-        msg += "{0}\n".format(self._sprintf_ntuple(psutil.swap_memory()))
-        await self._say(ctx, msg)
-        return
-
-    @sysinfo.command()
-    @checks.is_owner()
-    async def netstat(self, ctx):
-        """Information about the networking subsystem"""
-
-        AD = "-"
-        AF_INET6 = getattr(socket, 'AF_INET6', object())
-        proto_map = {
-            (AF_INET, SOCK_STREAM): 'tcp',
-            (AF_INET6, SOCK_STREAM): 'tcp6',
-            (AF_INET, SOCK_DGRAM): 'udp',
-            (AF_INET6, SOCK_DGRAM): 'udp6',
-        }
-        template = "{0:<5} {1:<30} {2:<30} {3:<13} {4:<6} {5}\n"
-        msg = template.format(
-            "Proto", "Local address", "Remote address", "Status", "PID",
-            "Program name")
-        proc_names = {}
-        for p in psutil.process_iter():
-            try:
-                proc_names[p.pid] = p.name()
-            except psutil.Error:
-                pass
-        for c in psutil.net_connections(kind='inet'):
-            laddr = "%s:%s" % c.laddr
-            raddr = ""
-            if c.raddr:
-                raddr = "%s:%s" % c.raddr
-            msg += template.format(
-                proto_map[(c.family, c.type)],
-                laddr,
-                raddr or AD,
-                c.status,
-                c.pid or AD,
-                proc_names.get(c.pid, '?')[:15],
-            )
-        await self._say(ctx, msg)
-        return
-
-    @sysinfo.command()
+    @sysinfo.command(pass_context=True)
     @checks.is_owner()
     async def nettop(self, ctx):
         """Snapshot of real-time network statistics"""
@@ -417,144 +250,11 @@ class SysInfo:
                 stats_after.packets_recv - stats_before.packets_recv,
             )
             msg += "\n"
-        await self._say(ctx, msg)
+        await ctx.send(msg)
         return
 
-    @sysinfo.command()
-    @checks.is_owner()
-    async def smem(self, ctx):
-        """Physical memory usage, taking shared memory pages into account"""
-
-        if not (psutil.LINUX or psutil.OSX or psutil.WINDOWS):
-            await ctx.send("Platform not supported")
-            return
-
-        if not hasattr(psutil.Process, "oneshot"):
-            await ctx.send("Platform not supported")
-            return
-
-        ad_pids = []
-        procs = []
-        for p in psutil.process_iter():
-            with p.oneshot():
-                try:
-                    mem = p.memory_full_info()
-                    info = p.as_dict(attrs=["cmdline", "username"])
-                except psutil.AccessDenied:
-                    ad_pids.append(p.pid)
-                except psutil.NoSuchProcess:
-                    pass
-                else:
-                    p._uss = mem.uss
-                    p._rss = mem.rss
-                    if not p._uss:
-                        continue
-                    p._pss = getattr(mem, "pss", "")
-                    p._swap = getattr(mem, "swap", "")
-                    p._info = info
-                    procs.append(p)
-
-        procs.sort(key=lambda p: p._uss)
-        template = "{0:<7} {1:<7} {2:<30} {3:>7} {4:>7} {5:>7} {6:>7}\n"
-        msg = template.format("PID", "User", "Cmdline", "USS", "PSS", "Swap", "RSS")
-        msg += "=" * 78 + "\n"
-        for p in procs[:86]:
-            msg += template.format(
-                p.pid,
-                p._info["username"][:7],
-                " ".join(p._info["cmdline"])[:30],
-                self._size(p._uss),
-                self._size(p._pss) if p._pss != "" else "",
-                self._size(p._swap) if p._swap != "" else "",
-                self._size(p._rss),
-            )
-        if ad_pids:
-            msg += "warning: access denied for {0} pids".format(len(ad_pids))
-        await self._say(ctx, msg)
-        return
-
-    @sysinfo.command()
-    @checks.is_owner()
-    async def ps(self, ctx):
-        """Information about active processes"""
-
-        PROC_STATUSES_RAW = {
-            psutil.STATUS_RUNNING: "R",
-            psutil.STATUS_SLEEPING: "S",
-            psutil.STATUS_DISK_SLEEP: "D",
-            psutil.STATUS_STOPPED: "T",
-            psutil.STATUS_TRACING_STOP: "t",
-            psutil.STATUS_ZOMBIE: "Z",
-            psutil.STATUS_DEAD: "X",
-            psutil.STATUS_WAKING: "WA",
-            psutil.STATUS_IDLE: "I",
-            psutil.STATUS_LOCKED: "L",
-            psutil.STATUS_WAITING: "W",
-        }
-        if hasattr(psutil, 'STATUS_WAKE_KILL'):
-            PROC_STATUSES_RAW[psutil.STATUS_WAKE_KILL] = "WK"
-        if hasattr(psutil, 'STATUS_SUSPENDED'):
-            PROC_STATUSES_RAW[psutil.STATUS_SUSPENDED] = "V"
-
-        today_day = datetime.date.today()
-        template = "{0:<10} {1:>5} {2:>4} {3:>4} {4:>7} {5:>7} {6:>13} {7:>5} {8:>5} {9:>7}  {10}\n"
-        attrs = ['pid', 'cpu_percent', 'memory_percent', 'name', 'cpu_times',
-                 'create_time', 'memory_info', 'status']
-        if os.name == 'posix':
-            attrs.append('uids')
-            attrs.append('terminal')
-        msg = template.format("USER", "PID", "%CPU", "%MEM", "VSZ", "RSS", "TTY",
-                              "STAT", "START", "TIME", "COMMAND")
-        for p in psutil.process_iter():
-            try:
-                pinfo = p.as_dict(attrs, ad_value='')
-            except psutil.NoSuchProcess:
-                pass
-            else:
-                if pinfo['create_time']:
-                    ctime = datetime.datetime.fromtimestamp(pinfo['create_time'])
-                    if ctime.date() == today_day:
-                        ctime = ctime.strftime("%H:%M")
-                    else:
-                        ctime = ctime.strftime("%b%d")
-                else:
-                    ctime = ''
-                cputime = time.strftime("%M:%S",
-                                        time.localtime(sum(pinfo['cpu_times'])))
-                try:
-                    user = p.username()
-                except KeyError:
-                    if os.name == 'posix':
-                        if pinfo['uids']:
-                            user = str(pinfo['uids'].real)
-                        else:
-                            user = ''
-                    else:
-                        raise
-                except psutil.Error:
-                    user = ''
-                if os.name == 'nt' and '\\' in user:
-                    user = user.split('\\')[1]
-                vms = pinfo['memory_info'] and int(pinfo['memory_info'].vms / 1024) or '?'
-                rss = pinfo['memory_info'] and int(pinfo['memory_info'].rss / 1024) or '?'
-                memp = pinfo['memory_percent'] and round(pinfo['memory_percent'], 1) or '?'
-                status = PROC_STATUSES_RAW.get(pinfo['status'], pinfo['status'])
-                msg += template.format(
-                    user[:10],
-                    pinfo['pid'],
-                    pinfo['cpu_percent'],
-                    memp,
-                    vms,
-                    rss,
-                    pinfo.get('terminal', '') or '?',
-                    status,
-                    ctime,
-                    cputime,
-                    pinfo['name'].strip() or '?')
-        await self._say(ctx, msg)
-        return
-
-    @sysinfo.command()
+   
+    @sysinfo.command(pass_context=True)
     @checks.is_owner()
     async def top(self, ctx):
         """Snapshot of real-time system information and tasks"""
@@ -615,90 +315,8 @@ class SysInfo:
             str(int(swap.total / 1024 / 1024)) + "M"
         )
 
-        # processes number and status
-        st = []
-        for x, y in procs_status.items():
-            if y:
-                st.append("%s=%s" % (x, y))
-        st.sort(key=lambda x: x[:3] in ('run', 'sle'), reverse=True)
-        msg += " Processes: {0} ({1})\n".format(num_procs, ', '.join(st))
-        # load average, uptime
-        uptime = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
-        if not hasattr(os, "getloadavg"):
-            msg += " Load average: N/A  Uptime: {0}".format(
-                str(uptime).split('.')[0])
-        else:
-            av1, av2, av3 = os.getloadavg()
-            msg += " Load average: {0:.2f} {1:.2f} {2:.2f}  Uptime: {3}".format(
-                av1, av2, av3, str(uptime).split('.')[0])
-        await self._say(ctx, msg)
-
-        # print processes
-        template = "{0:<6} {1:<9} {2:>5} {3:>8} {4:>8} {5:>8} {6:>6} {7:>10}  {8:>2}\n"
-        msg = template.format("PID", "USER", "NI", "VIRT", "RES", "CPU%", "MEM%",
-                              "TIME+", "NAME")
-        for p in processes:
-            # TIME+ column shows process CPU cumulative time and it
-            # is expressed as: "mm:ss.ms"
-            if p.dict['cpu_times'] is not None:
-                ctime = datetime.timedelta(seconds=sum(p.dict['cpu_times']))
-                ctime = "%s:%s.%s" % (ctime.seconds // 60 % 60,
-                                      str((ctime.seconds % 60)).zfill(2),
-                                      str(ctime.microseconds)[:2])
-            else:
-                ctime = ''
-            if p.dict['memory_percent'] is not None:
-                p.dict['memory_percent'] = round(p.dict['memory_percent'], 1)
-            else:
-                p.dict['memory_percent'] = ''
-            if p.dict['cpu_percent'] is None:
-                p.dict['cpu_percent'] = ''
-            if p.dict['username']:
-                username = p.dict['username'][:8]
-            else:
-                username = ''
-            msg += template.format(p.pid,
-                                   username,
-                                   p.dict['nice'] or '',
-                                   self._size(getattr(p.dict['memory_info'], 'vms', 0)),
-                                   self._size(getattr(p.dict['memory_info'], 'rss', 0)),
-                                   p.dict['cpu_percent'],
-                                   p.dict['memory_percent'],
-                                   ctime,
-                                   p.dict['name'] or '')
-        await self._say(ctx, msg)
+        await ctx.send(msg)
         return
-
-    @sysinfo.command()
-    @checks.is_owner()
-    async def who(self, ctx):
-        """Shows which users are currently logged in"""
-
-        msg = ""
-        users = psutil.users()
-        for user in users:
-            proc_name = ""
-            if hasattr(user, "pid"):
-                proc_name = psutil.Process(user.pid).name()
-            msg += "{0:<12} {1:<10} {2:<10} {3:<14} {4}\n".format(
-                user.name,
-                user.terminal or '-',
-                datetime.datetime.fromtimestamp(user.started).strftime("%Y-%m-%d %H:%M"),
-                "(%s)" % user.host if user.host else "",
-                proc_name)
-        if not msg:
-            msg = "No users logged in"
-        await self._say(ctx, msg)
-        return
-
-    def _sprintf_ntuple(self, nt):
-        s = ""
-        for name in nt._fields:
-            value = getattr(nt, name)
-            if name != 'percent':
-                value = self._size(value)
-            s += "{0:<10} : {1:>7}\n".format(name.capitalize(), value)
-        return s
 
     @staticmethod
     def _size(num):
@@ -709,8 +327,7 @@ class SysInfo:
         return "{0:.1f}{1}".format(num, "YB")
 
     # Respect 2000 character limit per message
-    @staticmethod
-    async def _say(ctx, msg, escape=True, wait=True):
+    async def _say(self, ctx, msg, escape=True, wait=True):
         template = "```{0}```" if escape else "{0}"
         buf = ""
         for line in msg.splitlines():
@@ -719,20 +336,18 @@ class SysInfo:
                 buf = ""
                 if wait:
                     await ctx.send("Type 'more' or 'm' to continue...")
-
-                    def same_author_check(msgg):
-                        return msgg.author == ctx.author
-
-                    try:
-                        msg = await ctx.bot.wait_for("message", check=same_author_check, timeout=10)
-                    except asyncio.TimeoutError:
-                        return await ctx.send("Command timed out.")
-
-                    name = msg.content.lower()
-
-                    if not msg or name not in ["more", "m"]:
+                    answer = await self.bot.wait_for_message(timeout=10, author=ctx.message.author)
+                    if not answer or answer.content.lower() not in ["more", "m"]:
                         await ctx.send("Command output stopped.")
                         return
             buf += line + "\n"
         if buf:
             await ctx.send(template.format(buf))
+
+
+def setup(bot):
+    if psutilAvailable:
+        n = Sysinfo(bot)
+        bot.add_cog(n)
+    else:
+        raise RuntimeError("You need to run 'pip3 install psutil'")
