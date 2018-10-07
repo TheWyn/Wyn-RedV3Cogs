@@ -15,9 +15,9 @@ try:
 except ImportError:
     psutilAvailable = False
 
-
+BaseCog = getattr(commands, "Cog", object)
 # Most of these scripts are from https://github.com/giampaolo/psutil/tree/master/scripts
-class SysInfo:
+class SysInfo(BaseCog):
     """Display system information for the machine running the bot"""
 
     def __init__(self, bot):
