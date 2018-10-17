@@ -129,8 +129,10 @@ query ($id: Int, $page: Int, $search: String) {
 }
 '''
 
+BaseCog = getattr(commands, "Cog", object)
 
-class AniSearch:
+
+class AniSearch(BaseCog):
     """Search for anime, manga, characters and users using Anilist"""
 
     def __init__(self, bot):
