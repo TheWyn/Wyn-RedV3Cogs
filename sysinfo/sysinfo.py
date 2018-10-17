@@ -26,8 +26,7 @@ class SysInfo(BaseCog):
     @commands.group(aliases=['sys'])
     async def sysinfo(self, ctx):
         """Shows system information for the machine running the bot"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @sysinfo.command()
     @checks.is_owner()
