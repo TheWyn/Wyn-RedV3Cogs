@@ -65,7 +65,7 @@ class Lyrics(BaseCog):
         try:
             results = lyrics_musixmatch(botsong)
             return await ctx.send(
-                '**__Lyrics for__** `' + botsong + ' ' + '`' + ', Requested by {}'.format(ctx.message.author.mention),
+                '**__Lyrics for__** `' + botsong + '`' + ', Requested by {}'.format(ctx.message.author.mention),
                 embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
         except discord.HTTPException:
             return await ctx.send(
