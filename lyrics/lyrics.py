@@ -40,7 +40,7 @@ class Lyrics(BaseCog):
     @lyrics.command()
     async def playing(self, ctx):
         """
-        Returns Lyrics for Mewtwo's current track.
+        Returns Lyrics for bot's current track.
 
         User arguments - artist and song
         """
