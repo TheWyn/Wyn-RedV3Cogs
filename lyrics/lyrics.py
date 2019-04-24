@@ -29,10 +29,11 @@ class Lyrics(BaseCog):
         User arguments - artist and song
         """
 
-        await ctx.send('**__Lyrics for__** `' + artistsong + '` , Requested by {}'.format(ctx.message.author.mention))
         try:
             results = lyrics_musixmatch(artistsong)
-            return await ctx.send(embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
+            return await ctx.send(
+                '**__Lyrics for__** `' + artistsong + '`, Requested by {}'.format(ctx.message.author.mention),
+                embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
         except discord.HTTPException:
             return await ctx.send(
                 embed=discord.Embed(description="No lyrics Found..", colour=discord.colour.Color.dark_blue()))
@@ -61,12 +62,11 @@ class Lyrics(BaseCog):
             return await ctx.send(
                 embed=discord.Embed(description="Audio not loaded.", colour=discord.colour.Color.dark_blue()))
 
-        await ctx.send(
-            '**__Lyrics for__** `' + botsong + ' ' + '`' + ', Requested by {}'.format(ctx.message.author.mention))
-
         try:
             results = lyrics_musixmatch(botsong)
-            return await ctx.send(embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
+            return await ctx.send(
+                '**__Lyrics for__** `' + botsong + ' ' + '`' + ', Requested by {}'.format(ctx.message.author.mention),
+                embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
         except discord.HTTPException:
             return await ctx.send(
                 embed=discord.Embed(description="No lyrics Found..", colour=discord.colour.Color.dark_blue()))
