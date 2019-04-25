@@ -26,7 +26,7 @@ class Lyrics(BaseCog):
         """
         Returns Lyrics for Song Lookup.
 
-        User arguments - artist and song
+        User arguments - artist/song
         """
 
         try:
@@ -43,7 +43,6 @@ class Lyrics(BaseCog):
         """
         Returns Lyrics for bot's current track.
 
-        User arguments - artist and song
         """
         guild = ctx.guild
         aikasbaby = self.bot.get_cog('Audio')
