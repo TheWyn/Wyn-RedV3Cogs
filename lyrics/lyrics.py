@@ -50,7 +50,7 @@ class Lyrics(BaseCog):
         if aikasbaby is not None:
             try:
                 player = lavalink.get_player(guild.id)
-                botsong = re.compile(r"((\[)|(\()).*(of?ficial|feat\.?|ft\.?|audio|video|lyrics?|remix).*(?(2)\]|\))",
+                botsong = re.compile(r"((\[)|(\()).*(of?ficial|feat\.?|ft\.?|audio|video|lyrics?|remix|HD).*(?(2)\]|\))",
                                      flags=re.I).sub('', player.current.title).strip()
             except AttributeError:
                 return await ctx.send(
