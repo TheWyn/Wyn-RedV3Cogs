@@ -17,7 +17,7 @@ class Lyrics(BaseCog):
 
     @commands.group()
     async def lyrics(self, ctx):
-        """Search lyrics or lyrics from Mewtwo's current track."""
+        """Search lyrics or lyrics from bot's current track."""
 
     pass
 
