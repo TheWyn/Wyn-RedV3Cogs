@@ -8,6 +8,8 @@ from redbot.core import commands
 
 BaseCog = getattr(commands, "Cog", object)
 
+color = discord.colour.Color.dark_blue()
+
 
 class Lyrics(BaseCog):
     """Get Song Lyrics."""
@@ -33,10 +35,9 @@ class Lyrics(BaseCog):
             results = lyrics_musixmatch(artistsong)
             return await ctx.send(
                 '**__Lyrics for__** `' + artistsong + '`, Requested by {}'.format(ctx.message.author.mention),
-                embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
+                embed=discord.Embed(description=results, colour=color))
         except discord.HTTPException:
-            return await ctx.send(
-                embed=discord.Embed(description="No lyrics Found..", colour=discord.colour.Color.dark_blue()))
+            return await ctx.send(embed=discord.Embed(description="No lyrics Found..", colour=color))
 
     @lyrics.command()
     async def playing(self, ctx):
@@ -53,23 +54,19 @@ class Lyrics(BaseCog):
                     r"((\[)|(\()).*(of?ficial|feat\.?|ft\.?|audio|video|lyrics?|remix|HD).*(?(2)\]|\))",
                     flags=re.I).sub('', player.current.title).strip()
             except AttributeError:
-                return await ctx.send(
-                    embed=discord.Embed(description="Nothing playing.", colour=discord.colour.Color.dark_blue()))
+                return await ctx.send(embed=discord.Embed(description="Nothing playing.", colour=color))
             except KeyError:
-                return await ctx.send(
-                    embed=discord.Embed(description="Nothing playing.", colour=discord.colour.Color.dark_blue()))
+                return await ctx.send(embed=discord.Embed(description="Nothing playing.", colour=color))
         else:
-            return await ctx.send(
-                embed=discord.Embed(description="Audio not loaded.", colour=discord.colour.Color.dark_blue()))
+            return await ctx.send(embed=discord.Embed(description="Audio not loaded.", colour=color))
 
         try:
             results = lyrics_musixmatch(botsong)
             return await ctx.send(
                 '**__Lyrics for__** `' + botsong + '`' + ', Requested by {}'.format(ctx.message.author.mention),
-                embed=discord.Embed(description=results, colour=discord.colour.Color.dark_blue()))
+                embed=discord.Embed(description=results, colour=color))
         except discord.HTTPException:
-            return await ctx.send(
-                embed=discord.Embed(description="No lyrics Found..", colour=discord.colour.Color.dark_blue()))
+            return await ctx.send(embed=discord.Embed(description="No lyrics Found..", colour=color))
 
 
 def lyrics_musixmatch(artistsong):
