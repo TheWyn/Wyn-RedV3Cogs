@@ -9,8 +9,8 @@
     "lyrics"
   ],
   "requirements": [
-    "beautifulsoup4==4.7.1",
-    "urllib3==1.24.2"
+    "beautifulsoup4",
+    "requests"
   ],
   "min_python_version": [
     3, 6, 0
