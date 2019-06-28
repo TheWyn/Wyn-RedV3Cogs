@@ -1,5 +1,5 @@
 {
-  "author": "Wyn",
+  "author": ["Wyn"],
   "install_msg": "Thank you for installing lyrics. Type `[p]lyrics` for more information.",
   "name": "Lyrics",
   "short": "Obtains song lyrics",
@@ -10,7 +10,7 @@
   ],
   "requirements": [
     "beautifulsoup4",
-    "requests"
+    "requests-futures"
   ],
   "min_python_version": [
     3, 6, 0
