@@ -39,8 +39,8 @@ class Lyrics(BaseCog):
                 e.set_footer(text='Requested by {}'.format(ctx.message.author))
                 await ctx.send(embed=e)
 
-        except discord.HTTPException as e:
-            return await ctx.send(embed=discord.Embed(description="{}".format(e), colour=await ctx.embed_color()))
+        except discord.Forbidden:
+            return await ctx.send("Missing embed permissions..", colour=await ctx.embed_color())
 
     @lyrics.command()
     async def playing(self, ctx):
@@ -74,8 +74,7 @@ class Lyrics(BaseCog):
                 e.set_footer(text='Requested by {}'.format(ctx.message.author))
                 await ctx.send(embed=e)
         except discord.Forbidden:
-            return await ctx.send(
-                embed=discord.Embed(description="Missing embed permissions..", colour=await ctx.embed_color()))
+            return await ctx.send("Missing embed permissions..", colour=await ctx.embed_color())
 
 
 def lyrics_musixmatch(artistsong):
