@@ -40,7 +40,7 @@ class Lyrics(BaseCog):
                 await ctx.send(embed=e)
 
         except discord.Forbidden:
-            return await ctx.send("Missing embed permissions..", colour=await ctx.embed_color())
+            return await ctx.send("Missing embed permissions..")
 
     @lyrics.command()
     async def playing(self, ctx):
@@ -57,13 +57,11 @@ class Lyrics(BaseCog):
                     r"((\[)|(\()).*(of?ficial|feat\.?|ft\.?|audio|video|lyrics?|remix|HD).*(?(2)\]|\))",
                     flags=re.I).sub('', player.current.title).strip()
             except AttributeError:
-                return await ctx.send(
-                    embed=discord.Embed(description="Nothing playing.", colour=await ctx.embed_color()))
+                return await ctx.send("Nothing playing.")
             except KeyError:
-                return await ctx.send(
-                    embed=discord.Embed(description="Nothing playing.", colour=await ctx.embed_color()))
+                return await ctx.send("Nothing playing.")
         else:
-            return await ctx.send(embed=discord.Embed(description="Audio not loaded.", colour=await ctx.embed_color()))
+            return await ctx.send("Audio not loaded.")
 
         try:
             results = lyrics_musixmatch(botsong)
@@ -74,7 +72,7 @@ class Lyrics(BaseCog):
                 e.set_footer(text='Requested by {}'.format(ctx.message.author))
                 await ctx.send(embed=e)
         except discord.Forbidden:
-            return await ctx.send("Missing embed permissions..", colour=await ctx.embed_color())
+            return await ctx.send("Missing embed permissions..")
 
 
 def lyrics_musixmatch(artistsong):
