@@ -20,8 +20,6 @@ class Lyrics(BaseCog):
     async def lyrics(self, ctx):
         """Search lyrics or lyrics from bot's current track."""
 
-    pass
-
     @lyrics.command()
     async def search(self, ctx, *, artistsong: str):
         """
