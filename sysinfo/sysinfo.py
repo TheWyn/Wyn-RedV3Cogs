@@ -24,12 +24,12 @@ class SysInfo(BaseCog):
         self.bot = bot
 
     @commands.group(aliases=['sys'])
+    @checks.is_owner()
     async def sysinfo(self, ctx):
         """Shows system information for the machine running the bot"""
         pass
 
     @sysinfo.command()
-    @checks.is_owner()
     async def info(self, ctx, *args: str):
         """Summary of cpu, memory, disk and network information
          Usage: info [option]
@@ -133,7 +133,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def df(self, ctx):
         """File system disk space usage"""
 
@@ -164,7 +163,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def free(self, ctx):
         """Amount of free and used memory in the system"""
 
@@ -194,7 +192,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def ifconfig(self, ctx):
         """Network interface information"""
 
@@ -245,7 +242,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def iotop(self, ctx):
         """Snapshot of I/O usage information output by the kernel"""
 
@@ -312,7 +308,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def meminfo(self, ctx):
         """System memory information"""
 
@@ -324,7 +319,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def netstat(self, ctx):
         """Information about the networking subsystem"""
 
@@ -363,7 +357,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def nettop(self, ctx):
         """Snapshot of real-time network statistics"""
 
@@ -420,7 +413,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def smem(self, ctx):
         """Physical memory usage, taking shared memory pages into account"""
 
@@ -473,7 +465,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def ps(self, ctx):
         """Information about active processes"""
 
@@ -554,7 +545,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def top(self, ctx):
         """Snapshot of real-time system information and tasks"""
 
@@ -669,7 +659,6 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    @checks.is_owner()
     async def who(self, ctx):
         """Shows which users are currently logged in"""
 
