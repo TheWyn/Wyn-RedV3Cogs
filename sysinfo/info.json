@@ -1,5 +1,5 @@
 {
-    "author" : "kagami#6142, Wyn",
+    "author" : ["kagami#6142, Wyn"],
     "name" : "SysInfo",
     "short" : "Display system information",
     "description" : "Uses psutil to show various system information for the machine running the bot",
