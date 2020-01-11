@@ -1,10 +1,10 @@
 {
-    "AUTHOR" : "kagami#6142, Wyn",
-    "NAME" : "SysInfo",
-    "SHORT" : "Display system information",
-    "DESCRIPTION" : "Uses psutil to show various system information for the machine running the bot",
-    "REQUIREMENTS": ["psutil"],
-    "TAGS" : ["utility", "tools", "system", "info"],
-    "INSTALL_MSG" : "Thank you for installing SysInfo from RitsuCogs/Wyn-RedV3Cogs.\nCommands are in [sysinfo|sys] group. [p]help sys",
-    "DISABLED" : false
+    "author" : "kagami#6142, Wyn",
+    "name" : "SysInfo",
+    "short" : "Display system information",
+    "description" : "Uses psutil to show various system information for the machine running the bot",
+    "requirements": ["psutil"],
+    "tags" : ["utility", "tools", "system", "info"],
+    "install_msg" : "Thank you for installing SysInfo from RitsuCogs/Wyn-RedV3Cogs.\nCommands are in [sysinfo|sys] group. [p]help sys",
+    "disabled" : false
 }
