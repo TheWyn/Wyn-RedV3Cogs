@@ -1,10 +1,10 @@
 {
-    "AUTHOR" : "Jintaku, Wyn",
-    "INSTALL_MSG" : "Installing anilist cog",
-    "NAME" : "anisearch",
-    "DISABLED" : false,
-    "HIDDEN" : false,
-    "SHORT" : "A cog to search the anilist API",
-    "DESCRIPTION" : "You can search anime, manga, users and characters!",
-    "TAGS" : ["anime", "manga", "anilist", "list"]
+    "author" : ["Jintaku, Wyn"],
+    "install_msg" : "Installing anilist cog",
+    "name" : "anisearch",
+    "disabled" : false,
+    "hidden" : false,
+    "short" : "A cog to search the anilist API",
+    "description" : "You can search anime, manga, users and characters!",
+    "tags" : ["anime", "manga", "anilist", "list"]
 }
