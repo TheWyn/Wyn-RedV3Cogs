@@ -6,4 +6,4 @@ def setup(bot):
         n = SysInfo(bot)
         bot.add_cog(n)
     else:
-        raise RuntimeError("You need to run 'pip3 install psutil'")
+        raise RuntimeError(f"You need to run '{sys.executable} -m pip install psutil'")
