@@ -29,11 +29,11 @@ class Lyrics(commands.Cog):
     async def on_red_audio_track_start(self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member):
         if not (guild and track):
             return
-            if track.author.lower() not in track.title.lower():
-                title = f"{track.title} - {track.author}"
-            else:
-                title = track.title
-            self._cache[guild.id] = title
+        if track.author.lower() not in track.title.lower():
+          title = f"{track.title} - {track.author}"
+        else:
+          title = track.title
+        self._cache[guild.id] = title
         auto_lyrics = await self.config.guild(guild).auto_lyrics()
         if auto_lyrics is True:
             notify_channel = lavalink.get_player(guild.id).fetch("channel")
