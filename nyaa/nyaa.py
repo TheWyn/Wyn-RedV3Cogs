@@ -45,10 +45,6 @@ class Nyaa(commands.Cog):
     async def nyaa(self, ctx):
         """Search anime."""
 
-    '''
-     Returns an array of dicts with the n last updates of Nyaa.si
-    '''
-
     @nyaa.command()
     async def lookup(self, ctx, *, text: str):
         """
