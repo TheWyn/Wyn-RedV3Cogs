@@ -30,9 +30,9 @@ class Lyrics(commands.Cog):
         if not (guild and track):
             return
         if track.author.lower() not in track.title.lower():
-          title = f"{track.title} - {track.author}"
+            title = f"{track.title} - {track.author}"
         else:
-          title = track.title
+            title = track.title
         self._cache[guild.id] = title
         auto_lyrics = await self.config.guild(guild).auto_lyrics()
         if auto_lyrics is True:
@@ -80,18 +80,18 @@ class Lyrics(commands.Cog):
         Returns Lyrics for Song Lookup.
         User arguments - artist/song
         """
-        async with ctx.typing():
-            try:
+        try:
+            async with ctx.typing():
                 results = lyrics_musixmatch(artistsong)
 
-                for page in pagify(results):
-                    e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
-                                      colour=await self.bot.get_embed_color(ctx.channel))
-                    e.set_footer(text='Requested by {}'.format(ctx.message.author))
-                    await ctx.send(embed=e)
+            for page in pagify(results):
+                e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
+                                  colour=await self.bot.get_embed_color(ctx.channel))
+                e.set_footer(text='Requested by {}'.format(ctx.message.author))
+                await ctx.send(embed=e)
 
-            except discord.Forbidden:
-                return await ctx.send("Missing embed permissions..")
+        except discord.Forbidden:
+            return await ctx.send("Missing embed permissions..")
 
     @lyrics.command()
     async def playing(self, ctx):
