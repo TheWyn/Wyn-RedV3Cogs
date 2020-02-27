@@ -9,7 +9,7 @@
     "lyrics"
   ],
   "requirements": [
-    "beautifulsoup4",
+    "bs4",
     "requests-futures"
   ],
   "min_python_version": [
