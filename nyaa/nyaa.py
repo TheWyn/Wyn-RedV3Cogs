@@ -55,8 +55,9 @@ class Nyaa(commands.Cog):
         count = "5"
         pages = []
         try:
-            result = self.search(text)
-            msg = ""
+            async with ctx.typing():
+                result = self.search(text)
+                msg = ""
             if len(result) < int(count):
                 count = len(result)
                 for res in result[0:int(count):]:
