@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from redbot.core import commands
-from requests_futures.sessions import FuturesSession
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from requests_futures.sessions import FuturesSession
 
 from nyaa.utils import Utils as uTils
 
@@ -84,6 +84,6 @@ class Nyaa(commands.Cog):
                     pages.append(msg)
                     msg = ""
                 await menu(ctx, pages, DEFAULT_CONTROLS)
-        
+
         except Exception:
             await ctx.send(text + " not found.")
