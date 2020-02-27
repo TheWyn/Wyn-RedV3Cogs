@@ -83,7 +83,6 @@ class Lyrics(commands.Cog):
         try:
             async with ctx.typing():
                 results = lyrics_musixmatch(artistsong)
-
             for page in pagify(results):
                 e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
@@ -109,16 +108,16 @@ class Lyrics(commands.Cog):
         else:
             return await ctx.send("Audio not loaded.")
 
-        async with ctx.typing():
-            try:
+        try:
+            async with ctx.typing():
                 results = lyrics_musixmatch(botsong)
-                for page in pagify(results):
-                    e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
-                                      colour=await self.bot.get_embed_color(ctx.channel))
-                    e.set_footer(text='Requested by {}'.format(ctx.message.author))
-                    await ctx.send(embed=e)
-            except discord.Forbidden:
-                return await ctx.send("Missing embed permissions..")
+            for page in pagify(results):
+                e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
+                                  colour=await self.bot.get_embed_color(ctx.channel))
+                e.set_footer(text='Requested by {}'.format(ctx.message.author))
+                await ctx.send(embed=e)
+        except discord.Forbidden:
+            return await ctx.send("Missing embed permissions..")
 
 
 def lyrics_musixmatch(artistsong):
