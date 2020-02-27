@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from redbot.core import commands
 from requests_futures.sessions import FuturesSession
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from nyaa.utils import Utils as uTils
 
@@ -52,6 +53,7 @@ class Nyaa(commands.Cog):
         User arguments - Show name
         """
         count = "5"
+        pages = []
         try:
             result = self.search(text)
             msg = ""
@@ -66,8 +68,9 @@ class Nyaa(commands.Cog):
                            "Date: " + res['date'] + " --- " + \
                            "Seeders: " + res['seeders'] + " --- " + \
                            "Leechers: " + res['leechers'] + "\n```"
-                    await ctx.send(msg)
+                    pages.append(msg)
                     msg = ""
+                await menu(ctx, pages, DEFAULT_CONTROLS)
             else:
                 for res in result[0:int(count):]:
                     msg += "```Name: " + res['name'] + "\n" + \
@@ -78,7 +81,9 @@ class Nyaa(commands.Cog):
                            "Date: " + res['date'] + " --- " + \
                            "Seeders: " + res['seeders'] + " --- " + \
                            "Leechers: " + res['leechers'] + "\n```"
-                    await ctx.send(msg)
+                    pages.append(msg)
                     msg = ""
+                await menu(ctx, pages, DEFAULT_CONTROLS)
+        
         except Exception:
             await ctx.send(text + " not found.")
