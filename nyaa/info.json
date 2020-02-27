@@ -1,0 +1,18 @@
+{
+  "author": ["Wyn"],
+  "install_msg": "Thank you for installing Nyaa Searcher. Type `[p]nyaa` for more information.",
+  "name": "Nyaa Searcher",
+  "short": "Obtains torrent info",
+  "description": "Obtains torrent info from nyaa.si",
+  "disabled": false,
+  "tags": [
+    "nyaa"
+  ],
+  "requirements": [
+    "bs4",
+    "requests-futures"
+  ],
+  "min_python_version": [
+    3, 6, 0
+  ]
+}
