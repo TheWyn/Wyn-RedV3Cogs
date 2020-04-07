@@ -218,7 +218,7 @@ class AniSearch(BaseCog):
 
         data = (await self._request(SEARCH_ANIME_MANGA_QUERY, variables))['data']['Page']['media']
 
-        print(data)
+        # print(data)
 
         if data is not None and len(data) > 0:
 
