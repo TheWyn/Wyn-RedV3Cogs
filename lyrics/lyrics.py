@@ -30,7 +30,7 @@ class Lyrics(commands.Cog):
         if not (guild and track):
             return
         if track.author.lower() not in track.title.lower():
-            title = f"{track.title} - {track.author}"
+            title = f"{track.title}"
         else:
             title = track.title
         self._cache[guild.id] = title
