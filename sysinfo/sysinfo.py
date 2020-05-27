@@ -656,7 +656,7 @@ class SysInfo(BaseCog):
                                        p.dict['memory_percent'],
                                        ctime,
                                        p.dict['name'] or '')
-        await self._say(ctx, msg)
+            await self._say(ctx, msg)
         return
 
     @sysinfo.command()
