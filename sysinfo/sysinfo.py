@@ -545,7 +545,7 @@ class SysInfo(BaseCog):
         return
 
     @sysinfo.command()
-    async def top(self, ctx):
+    async def top(self, ctx, show_processes: bool = True):
         """Snapshot of real-time system information and tasks"""
 
         # sleep some time
@@ -623,38 +623,39 @@ class SysInfo(BaseCog):
         await self._say(ctx, msg)
 
         # print processes
-        template = "{0:<6} {1:<9} {2:>5} {3:>8} {4:>8} {5:>8} {6:>6} {7:>10}  {8:>2}\n"
-        msg = template.format("PID", "USER", "NI", "VIRT", "RES", "CPU%", "MEM%",
-                              "TIME+", "NAME")
-        for p in processes:
-            # TIME+ column shows process CPU cumulative time and it
-            # is expressed as: "mm:ss.ms"
-            if p.dict['cpu_times'] is not None:
-                ctime = datetime.timedelta(seconds=sum(p.dict['cpu_times']))
-                ctime = "%s:%s.%s" % (ctime.seconds // 60 % 60,
-                                      str((ctime.seconds % 60)).zfill(2),
-                                      str(ctime.microseconds)[:2])
-            else:
-                ctime = ''
-            if p.dict['memory_percent'] is not None:
-                p.dict['memory_percent'] = round(p.dict['memory_percent'], 1)
-            else:
-                p.dict['memory_percent'] = ''
-            if p.dict['cpu_percent'] is None:
-                p.dict['cpu_percent'] = ''
-            if p.dict['username']:
-                username = p.dict['username'][:8]
-            else:
-                username = ''
-            msg += template.format(p.pid,
-                                   username,
-                                   p.dict['nice'] or '',
-                                   self._size(getattr(p.dict['memory_info'], 'vms', 0)),
-                                   self._size(getattr(p.dict['memory_info'], 'rss', 0)),
-                                   p.dict['cpu_percent'],
-                                   p.dict['memory_percent'],
-                                   ctime,
-                                   p.dict['name'] or '')
+        if show_processes:
+            template = "{0:<6} {1:<9} {2:>5} {3:>8} {4:>8} {5:>8} {6:>6} {7:>10}  {8:>2}\n"
+            msg = template.format("PID", "USER", "NI", "VIRT", "RES", "CPU%", "MEM%",
+                                  "TIME+", "NAME")
+            for p in processes:
+                # TIME+ column shows process CPU cumulative time and it
+                # is expressed as: "mm:ss.ms"
+                if p.dict['cpu_times'] is not None:
+                    ctime = datetime.timedelta(seconds=sum(p.dict['cpu_times']))
+                    ctime = "%s:%s.%s" % (ctime.seconds // 60 % 60,
+                                          str((ctime.seconds % 60)).zfill(2),
+                                          str(ctime.microseconds)[:2])
+                else:
+                    ctime = ''
+                if p.dict['memory_percent'] is not None:
+                    p.dict['memory_percent'] = round(p.dict['memory_percent'], 1)
+                else:
+                    p.dict['memory_percent'] = ''
+                if p.dict['cpu_percent'] is None:
+                    p.dict['cpu_percent'] = ''
+                if p.dict['username']:
+                    username = p.dict['username'][:8]
+                else:
+                    username = ''
+                msg += template.format(p.pid,
+                                       username,
+                                       p.dict['nice'] or '',
+                                       self._size(getattr(p.dict['memory_info'], 'vms', 0)),
+                                       self._size(getattr(p.dict['memory_info'], 'rss', 0)),
+                                       p.dict['cpu_percent'],
+                                       p.dict['memory_percent'],
+                                       ctime,
+                                       p.dict['name'] or '')
         await self._say(ctx, msg)
         return
 
