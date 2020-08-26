@@ -25,6 +25,10 @@ class Lyrics(commands.Cog):
     def cog_unload(self):
         self._cache = {}
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
+
     @commands.Cog.listener()
     async def on_red_audio_track_start(self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member):
         if not (guild and track):

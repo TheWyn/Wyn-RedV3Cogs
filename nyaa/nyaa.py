@@ -10,6 +10,10 @@ class Nyaa(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
+
     '''
      Return a list of dicts with the results of the query.
     '''
