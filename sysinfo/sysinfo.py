@@ -15,13 +15,16 @@ try:
 except ImportError:
     psutilAvailable = False
 
-BaseCog = getattr(commands, "Cog", object)
 # Most of these scripts are from https://github.com/giampaolo/psutil/tree/master/scripts
-class SysInfo(BaseCog):
+class SysInfo(commands.Cog):
     """Display system information for the machine running the bot"""
 
     def __init__(self, bot):
         self.bot = bot
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
 
     @commands.group(aliases=['sys'])
     @checks.is_owner()

@@ -129,15 +129,17 @@ query ($id: Int, $page: Int, $search: String) {
 }
 '''
 
-BaseCog = getattr(commands, "Cog", object)
 
-
-class AniSearch(BaseCog):
+class AniSearch(commands.Cog):
     """Search for anime, manga, characters and users using Anilist"""
 
     def __init__(self, bot):
         self.bot = bot
         self.url = 'https://graphql.anilist.co'
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
 
     def format_name(self, first_name, last_name):  # Combines first_name and last_name and/or shows either of the two
         if first_name and last_name:
