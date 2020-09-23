@@ -47,7 +47,7 @@ class Lyrics(commands.Cog):
             botsong = BOT_SONG_RE.sub('', self._cache[guild.id]).strip()
             async with notify_channel.typing():
                 try:
-                    results = lyrics_musixmatch(botsong)
+                    results = getlyrics(botsong)
                     for page in pagify(results):
                         e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
                                           colour=await self.bot.get_embed_color(notify_channel))
@@ -86,7 +86,7 @@ class Lyrics(commands.Cog):
         """
         try:
             async with ctx.typing():
-                results = lyrics_musixmatch(artistsong)
+                results = getlyrics(artistsong)
             for page in pagify(results):
                 e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
@@ -114,7 +114,7 @@ class Lyrics(commands.Cog):
 
         try:
             async with ctx.typing():
-                results = lyrics_musixmatch(botsong)
+                results = getlyrics(botsong)
             for page in pagify(results):
                 e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
@@ -124,18 +124,27 @@ class Lyrics(commands.Cog):
             return await ctx.send("Missing embed permissions..")
 
 
-def lyrics_musixmatch(artistsong):
+def getlyrics(artistsong: str):
+    lyrics = ''
     artistsong = re.sub('[^a-zA-Z0-9 \n.]', '', artistsong)
     artistsong = re.sub(r'\s+', ' ', artistsong).strip()
-    headers = {'User-Agent': 'Mozilla/5.0 (X11; Arch Linux; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0'}
+    url = 'https://www.google.com/search?q={}&ie=utf-8&oe=utf-8'.format(artistsong)
+    lyricheaders = {
+        'User-Agent': 'Mozilla/5.0 (Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+    }
     try:
-        session = FuturesSession()
-        searchresult = session.get("https://musixmatch.com/search/{}".format(artistsong).replace(" ", "%20"),
-                                   headers=headers)
-        soup = BeautifulSoup(searchresult.result().content, 'html.parser')
-        url = "https://www.musixmatch.com" + soup.find('a', {"class": "title"})['href']
-        soup = BeautifulSoup(session.get(url, headers=headers).result().content, 'html.parser')
-        lyrics = soup.text.split('"body":"')[1].split('","language"')[0]
+        s = FuturesSession()
+        r = s.get(url, headers=lyricheaders)
+        soup = BeautifulSoup(r.result().text, "html.parser").find_all("span", {"jsname": "YS01Ge"})
+        for link in soup:
+            lyrics += (link.text + '\n')
+
         lyrics = lyrics.replace("\\n", "\n")
         lyrics = lyrics.replace("\\", "")
         lyrics = lyrics.replace("&amp;", "&")
