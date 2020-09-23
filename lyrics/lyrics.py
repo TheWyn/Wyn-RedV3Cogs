@@ -128,7 +128,7 @@ def getlyrics(artistsong: str):
     lyrics = ''
     artistsong = re.sub('[^a-zA-Z0-9 \n.]', '', artistsong)
     artistsong = re.sub(r'\s+', ' ', artistsong).strip()
-    url = 'https://www.google.com/search?q={}&ie=utf-8&oe=utf-8'.format(artistsong)
+    url = 'https://www.google.com/search?q={}+lyrics&ie=utf-8&oe=utf-8'.format(artistsong)
     lyricheaders = {
         'User-Agent': 'Mozilla/5.0 (Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -150,6 +150,9 @@ def getlyrics(artistsong: str):
         lyrics = lyrics.replace("&amp;", "&")
         lyrics = lyrics.replace("`", "'")
         lyrics = lyrics.strip()
+
+        if lyrics == '':
+            lyrics = 'No lyrics Found.'
 
     except Exception:
         lyrics = 'No lyrics Found.'
