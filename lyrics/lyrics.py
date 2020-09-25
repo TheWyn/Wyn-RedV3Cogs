@@ -97,6 +97,39 @@ class Lyrics(commands.Cog):
             return await ctx.send("Missing embed permissions..")
 
     @lyrics.command()
+    async def spotify(self, ctx, user: discord.Member):
+        """
+        Returns Lyrics from Discord Member song.
+        User arguments - Mention/ID
+        """
+        user = user or ctx.author
+        async with ctx.typing():
+            spot = next((activity for activity in user.activities if isinstance(activity, discord.Spotify)), None)
+            if spot is None:
+                await ctx.send("{} is not listening to Spotify".format(user.name))
+                return
+            embed = discord.Embed(title="{}'s Spotify".format(user.name),
+                                  colour=await self.bot.get_embed_color(ctx.channel))
+            embed.add_field(name="Song", value=spot.title)
+            embed.add_field(name="Artist", value=spot.artist)
+            embed.add_field(name="Album", value=spot.album)
+            embed.add_field(name="Track Link",
+                            value="[{}](https://open.spotify.com/track/{})".format(spot.title, spot.track_id))
+            embed.set_thumbnail(url=spot.album_cover_url)
+            await ctx.send(embed=embed)
+
+            try:
+                results = getlyrics('{} {}'.format(spot.artist, spot.title))
+                for page in pagify(results):
+                    e = discord.Embed(title='Lyrics for {} {}'.format(spot.artist, spot.title), description=page,
+                                      colour=await self.bot.get_embed_color(ctx.channel))
+                    e.set_footer(text='Requested by {}'.format(ctx.message.author))
+                    await ctx.send(embed=e)
+
+            except discord.Forbidden:
+                return await ctx.send("Missing embed permissions..")
+
+    @lyrics.command()
     async def playing(self, ctx):
         """
         Returns Lyrics for bot's current track.
