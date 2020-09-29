@@ -9,6 +9,6 @@ Cogs:
 ------
 
 * Nyaa anime torrent search using `nyaa.si` scrapping, lookup to find torrent
-* Lyrics using musixmatch scrapping, search or get current playing
+* Lyrics using google scrapping, search or get current playing
 * Anilist by [Jintaku](https://github.com/Jintaku/Jintaku-Cogs) ported to Red V3
 * Sysinfo by [Ritsu](https://github.com/ritsu/RitsuCogs) ported to Red V3
