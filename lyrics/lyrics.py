@@ -101,6 +101,9 @@ class Lyrics(commands.Cog):
         """
         Returns Lyrics from Discord Member song.
         User arguments - Mention/ID
+
+        NOTE: This command uses Discord presence intent, enable in development portal.
+
         """
         user = user or ctx.author
         async with ctx.typing():
