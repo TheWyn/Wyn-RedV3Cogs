@@ -178,14 +178,13 @@ def getlyrics(artistsong: str):
         s = FuturesSession()
         r = s.get(url, headers=lyricheaders)
         soup = BeautifulSoup(r.result().text, "html.parser").find_all("span", {"jsname": "YS01Ge"})
+        lines = 0
         for link in soup:
             lyrics += (link.text + '\n')
-
-        lyrics = lyrics.replace("\\n", "\n")
-        lyrics = lyrics.replace("\\", "")
-        lyrics = lyrics.replace("&amp;", "&")
-        lyrics = lyrics.replace("`", "'")
-        lyrics = lyrics.strip()
+            lines += 1
+            if lines == 4:
+                lyrics += '\n'
+                lines = 0
 
         if lyrics == '':
             lyrics = 'No lyrics Found.'
