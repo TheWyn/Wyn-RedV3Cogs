@@ -9,7 +9,7 @@ from redbot.core.utils.chat_formatting import pagify
 from requests_futures.sessions import FuturesSession
 
 BOT_SONG_RE = re.compile((r"((\[)|(\()).*(of?ficial|feat\.?|"
-                          r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)\]|\))"), flags=re.I)
+                          r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)]|\))"), flags=re.I)
 
 
 class Lyrics(commands.Cog):
@@ -187,7 +187,7 @@ def getlyrics(artistsong: str):
                 lyrics += '\n'
                 lines = 0
 
-        if lines > 2:
+        if lines >= 1:
             lyrics += '\n'
 
         source = BeautifulSoup(t.text, "html.parser").find("div", {"class": "j04ED"})
