@@ -177,7 +177,8 @@ def getlyrics(artistsong: str):
     try:
         s = FuturesSession()
         r = s.get(url, headers=lyricheaders)
-        soup = BeautifulSoup(r.result().text, "html.parser").find_all("span", {"jsname": "YS01Ge"})
+        t = r.result()
+        soup = BeautifulSoup(t.text, "html.parser").find_all("span", {"jsname": "YS01Ge"})
         lines = 0
         for link in soup:
             lyrics += (link.text + '\n')
@@ -185,6 +186,12 @@ def getlyrics(artistsong: str):
             if lines == 4:
                 lyrics += '\n'
                 lines = 0
+
+        if lines > 2:
+            lyrics += '\n'
+
+        source = BeautifulSoup(t.text, "html.parser").find("div", {"class": "j04ED"})
+        lyrics += ('_{}_'.format(source.text))
 
         if lyrics == '':
             lyrics = 'No lyrics Found.'
