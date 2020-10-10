@@ -196,6 +196,9 @@ def getlyrics(artistsong: str):
         for i in range(len(lyric_source)):
             lyrics += ('_{}_'.format(lyric_source[i].text))
 
+        if lyrics == '':
+            lyrics = 'No Lyrics found.'
+
     except Exception:
         lyrics = 'No lyrics found.'
 
