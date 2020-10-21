@@ -5,7 +5,7 @@ import discord
 import lavalink
 from redbot.core import commands, Config
 from redbot.core.utils.chat_formatting import pagify
-from requests_html import HTMLSession
+from requests_html import AsyncHTMLSession
 
 BOT_SONG_RE = re.compile((r"((\[)|(\()).*(of?ficial|feat\.?|"
                           r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)]|\))"), flags=re.I)
@@ -46,7 +46,7 @@ class Lyrics(commands.Cog):
             botsong = BOT_SONG_RE.sub('', self._cache[guild.id]).strip()
             async with notify_channel.typing():
                 try:
-                    results = getlyrics(botsong)
+                    results = await getlyrics(botsong)
                     for page in pagify(results):
                         e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
                                           colour=await self.bot.get_embed_color(notify_channel))
@@ -85,7 +85,7 @@ class Lyrics(commands.Cog):
         """
         try:
             async with ctx.typing():
-                results = getlyrics(artistsong)
+                results = await getlyrics(artistsong)
             for page in pagify(results):
                 e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
@@ -121,7 +121,7 @@ class Lyrics(commands.Cog):
             await ctx.send(embed=embed)
 
             try:
-                results = getlyrics('{} {}'.format(spot.artist, spot.title))
+                results = await getlyrics('{} {}'.format(spot.artist, spot.title))
                 for page in pagify(results):
                     e = discord.Embed(title='Lyrics for {} {}'.format(spot.artist, spot.title), description=page,
                                       colour=await self.bot.get_embed_color(ctx.channel))
@@ -149,7 +149,7 @@ class Lyrics(commands.Cog):
 
         try:
             async with ctx.typing():
-                results = getlyrics(botsong)
+                results = await getlyrics(botsong)
             for page in pagify(results):
                 e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
@@ -159,10 +159,10 @@ class Lyrics(commands.Cog):
             return await ctx.send("Missing embed permissions..")
 
 
-def getlyrics(artistsong: str):
+async def getlyrics(artistsong: str):
     lyrics = ''
     try:
-        session = HTMLSession()
+        session = AsyncHTMLSession()
         session.headers['user-agent'] = 'Mozilla/5.0 (Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0'
 
         artistsong = re.sub('[^a-zA-Z0-9 \n.]', '', artistsong)
@@ -173,14 +173,12 @@ def getlyrics(artistsong: str):
         for i in artistsong:
             lyric += i + "+"
         lyric = lyric[:-1]
-        url = "https://www.google.com/search?q=" + lyric + "&oq=" + lyric + "&ie=UTF-8"
 
-        r = session.get(url)
+        r = await session.get("https://www.google.com/search?q=" + lyric + "&oq=" + lyric + "&ie=UTF-8")
+
         lyric_div = r.html.find("span[jsname='YS01Ge']")
-
         lines = 0
-
-        lyric_div = lyric_div[4:]  # gives us the first four rows twice only want em once
+        lyric_div = lyric_div[4:]
 
         for i in range(len(lyric_div)):
             lyrics += (lyric_div[i].text + '\n')
