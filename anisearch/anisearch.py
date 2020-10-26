@@ -2,17 +2,13 @@ import asyncio
 import datetime
 import json
 import re
-
+ 
 import aiohttp
 import discord
 from redbot.core import commands
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-numbs = {
-    "next": "➡",
-    "back": "⬅",
-    "exit": "❌"
-}
-
+ 
 SEARCH_ANIME_MANGA_QUERY = '''
 query ($id: Int, $page: Int, $search: String, $type: MediaType) {
     Page (page: $page, perPage: 10) {
@@ -43,7 +39,7 @@ query ($id: Int, $page: Int, $search: String, $type: MediaType) {
     }
 }
 '''
-
+ 
 SEARCH_CHARACTER_QUERY = '''
 query ($id: Int, $page: Int, $search: String) {
   Page(page: $page, perPage: 10) {
@@ -74,7 +70,7 @@ query ($id: Int, $page: Int, $search: String) {
   }
 }
 '''
-
+ 
 SEARCH_USER_QUERY = '''
 query ($id: Int, $page: Int, $search: String) {
     Page (page: $page, perPage: 10) {
@@ -128,19 +124,19 @@ query ($id: Int, $page: Int, $search: String) {
     }
 }
 '''
-
-
+ 
+ 
 class AniSearch(commands.Cog):
     """Search for anime, manga, characters and users using Anilist"""
-
+ 
     def __init__(self, bot):
         self.bot = bot
         self.url = 'https://graphql.anilist.co'
-
+ 
     async def red_delete_data_for_user(self, **kwargs):
         """Nothing to delete."""
         return
-
+ 
     def format_name(self, first_name, last_name):  # Combines first_name and last_name and/or shows either of the two
         if first_name and last_name:
             return first_name + " " + last_name
@@ -150,21 +146,21 @@ class AniSearch(commands.Cog):
             return last_name
         else:
             return 'No name'
-
+ 
     def clean_html(self, description):  # Removes html tags
         if not description:
             return ""
         cleanr = re.compile("<.*?>")
         cleantext = re.sub(cleanr, "", description)
         return cleantext
-
+ 
     def clean_spoilers(self, description):  # Removes spoilers using the html tag given by AniList
         if not description:
             return ""
         cleanr = re.compile("/<span[^>]*>.*</span>/g")
         cleantext = re.sub(cleanr, "", description)
         return cleantext
-
+ 
     def description_parser(self, description):  # Limits text to 400characters and 5 lines and adds "..." at the end
         description = self.clean_spoilers(description)
         description = self.clean_html(description)
@@ -173,33 +169,33 @@ class AniSearch(commands.Cog):
             return description[:400] + "..."
         else:
             return description
-
+ 
     def list_maximum(self, items):  # Limits to 5 strings than adds "+X more"
         if len(items) > 5:
             return items[:5] + ["+ " + str(len(items) - 5) + " more"]
         else:
             return items
-
+ 
     async def _request(self, query, variables=None):
-
+ 
         if variables is None:
             variables = {}
-
+ 
         request_json = {
             'query': query,
             'variables': variables
         }
-
+ 
         headers = {'content-type': 'application/json'}
-
+ 
         async with aiohttp.ClientSession() as session:
             async with session.post(self.url,
                                     data=json.dumps(request_json),
                                     headers=headers) as response:
                 return await response.json()
-
+ 
     async def _search_anime_manga(self, ctx, cmd, entered_title):
-
+ 
         # Outputs MediaStatuses to strings
         MediaStatusToString = {
             # Has completed and is no longer being released
@@ -211,22 +207,22 @@ class AniSearch(commands.Cog):
             # Ended before the work could be finished
             'CANCELLED': 'Cancelled'
         }
-
+ 
         variables = {
             'search': entered_title,
             'page': 1,
             'type': cmd
         }
-
+ 
         data = (await self._request(SEARCH_ANIME_MANGA_QUERY, variables))['data']['Page']['media']
-
+ 
         # print(data)
-
+ 
         if data is not None and len(data) > 0:
-
+ 
             # a list of embeds
             embeds = []
-
+ 
             for anime_manga in data:
                 # Sets up various variables for Embed
                 link = 'https://anilist.co/{}/{}'.format(cmd.lower(), anime_manga['id'])
@@ -237,14 +233,14 @@ class AniSearch(commands.Cog):
                     time_left = str(datetime.timedelta(seconds=seconds))
                 else:
                     time_left = "Never"
-
+ 
                 external_links = ""
                 for i in range(0, len(anime_manga['externalLinks'])):
                     ext_link = anime_manga['externalLinks'][i]
                     external_links += "[{site_name}]({link}), ".format(site_name=ext_link['site'], link=ext_link['url'])
                     if i + 1 == len(anime_manga['externalLinks']):
                         external_links = external_links[:-2]
-
+ 
                 embed = discord.Embed(title=title)
                 embed.url = link
                 embed.description = self.description_parser(description)
@@ -264,26 +260,26 @@ class AniSearch(commands.Cog):
                                 value="[Anilist]({anilist_url}), [MAL](https://myanimelist.net/{type}/{id_mal}), Kitsu (Soon™)".format(
                                     id_mal=anime_manga['idMal'], anilist_url=link, type=cmd.lower()))
                 embeds.append(embed)
-
+ 
             return embeds, data
-
+ 
         else:
             return None
-
+ 
     async def _search_character(self, ctx, entered_title):
-
+ 
         variables = {
             'search': entered_title,
             'page': 1
         }
-
+ 
         data = (await self._request(SEARCH_CHARACTER_QUERY, variables))['data']['Page']['characters']
-
+ 
         if data is not None and len(data) > 0:
-
+ 
             # a list of embeds
             embeds = []
-
+ 
             for character in data:
                 # Sets up various variables for Embed
                 link = 'https://anilist.co/character/{}'.format(character['id'])
@@ -303,32 +299,32 @@ class AniSearch(commands.Cog):
                     embed.add_field(name="Manga", value="\n".join(self.list_maximum(character_manga)))
                 embed.set_footer(text="Powered by Anilist")
                 embeds.append(embed)
-
+ 
             return embeds, data
-
+ 
         else:
             return None
-
+ 
     async def _search_user(self, ctx, entered_title):
-
+ 
         variables = {
             'search': entered_title,
             'page': 1
         }
-
+ 
         data = (await self._request(SEARCH_USER_QUERY, variables))['data']['Page']['users']
-
+ 
         if data is not None and len(data) > 0:
-
+ 
             # a list of embeds
             embeds = []
-
+ 
             for user in data:
                 # Sets up various variables for Embed
                 link = 'https://anilist.co/user/{}'.format(user['id'])
                 title = "[{}]({})".format(user['name'], link)
                 title = user['name']
-
+ 
                 embed = discord.Embed(title=title)
                 embed.url = link
                 embed.description = self.description_parser(user['about'])
@@ -353,135 +349,70 @@ class AniSearch(commands.Cog):
                     embed.add_field(name="Favourite characters", value="\n".join(self.list_maximum(fav_ch)))
                 embed.set_footer(text="Powered by Anilist")
                 embeds.append(embed)
-
+ 
             return embeds, data
-
+ 
         else:
             return None
-
+ 
     @commands.command()
     async def anime(self, ctx, *, entered_title):
         """Searches for anime using Anilist"""
-
+ 
         try:
             cmd = "ANIME"
             embeds, data = await self._search_anime_manga(ctx, cmd, entered_title)
-
+ 
             if embeds is not None:
-                await anilist_menu(ctx, embeds, message=None, page=0, timeout=30)
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
                 await ctx.send('No anime was found or there was an error in the process')
-
+ 
         except TypeError:
             await ctx.send('No anime was found or there was an error in the process')
-
+ 
     @commands.command()
     async def manga(self, ctx, *, entered_title):
         """Searches for manga using Anilist"""
-
+ 
         try:
             cmd = "MANGA"
             embeds, data = await self._search_anime_manga(ctx, cmd, entered_title)
-
+ 
             if embeds is not None:
-                await anilist_menu(ctx, embeds, message=None, page=0, timeout=30)
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
                 await ctx.send('No mangas were found or there was an error in the process')
-
+ 
         except TypeError:
             await ctx.send('No mangas were found or there was an error in the process')
-
+ 
     @commands.command()
     async def character(self, ctx, *, entered_title):
         """Searches for anime using Anilist"""
-
+ 
         try:
             embeds, data = await self._search_character(ctx, entered_title)
-
+ 
             if embeds is not None:
-                await anilist_menu(ctx, embeds, message=None, page=0, timeout=30)
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
                 await ctx.send('No characters were found or there was an error in the process')
-
+ 
         except TypeError:
             await ctx.send('No characters were found or there was an error in the process')
-
+ 
     @commands.command()
     async def user(self, ctx, *, entered_title):
         """Searches users using Anilist"""
-
+ 
         try:
             embeds, data = await self._search_user(ctx, entered_title)
-
+ 
             if embeds is not None:
-                await anilist_menu(ctx, embeds, message=None, page=0, timeout=30)
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
             else:
                 await ctx.send('No users were found or there was an error in the process')
-
+ 
         except TypeError:
             await ctx.send('No users were found or there was an error in the process')
-
-
-async def anilist_menu(ctx, anime_list: list,
-                       message: discord.Message = None,
-                       page=0, timeout: int = 30):
-    """menu control logic for this taken from
-       https://github.com/Lunar-Dust/Dusty-Cogs/blob/master/menu/menu.py"""
-    emb = anime_list[page]
-    if not message:
-        message = await ctx.send(embed=emb)
-        await message.add_reaction("⬅")
-        await message.add_reaction("❌")
-        await message.add_reaction("➡")
-    else:
-        await message.edit(embed=emb)
-
-    def react_check(r, u):
-        return u == ctx.author and str(r.emoji) in ["➡", "⬅", "❌"]
-
-    try:
-        react, user = await ctx.bot.wait_for(
-            "reaction_add", check=react_check, timeout=timeout
-        )
-    except asyncio.TimeoutError:
-        try:
-            await message.clear_reactions()
-        except discord.Forbidden:
-            await message.remove_reaction("⬅", ctx.guild.me)
-            await message.remove_reaction("❌", ctx.guild.me)
-            await message.remove_reaction("➡", ctx.guild.me)
-        return None
-    reacts = {v: k for k, v in numbs.items()}
-    react = reacts[react.emoji]
-    if react == "next":
-        perms = message.channel.permissions_for(ctx.guild.me)
-        if perms.manage_messages:
-            try:
-                await message.remove_reaction("➡", ctx.author)
-            except discord.NotFound:
-                pass
-        if page == len(anime_list) - 1:
-            next_page = 0  # first item
-        else:
-            next_page = page + 1
-        return await anilist_menu(ctx, anime_list, message=message, page=next_page, timeout=timeout)
-    elif react == "back":
-        perms = message.channel.permissions_for(ctx.guild.me)
-        if perms.manage_messages:
-            try:
-                await message.remove_reaction("⬅", ctx.author)
-            except discord.NotFound:
-                pass
-        if page == 0:
-            next_page = len(anime_list) - 1  # last item
-        else:
-            next_page = page - 1
-        return await anilist_menu(ctx, anime_list, message=message, page=next_page, timeout=timeout)
-    else:
-        try:
-            await message.clear_reactions()
-        except discord.Forbidden:
-            await message.remove_reaction("⬅", ctx.guild.me)
-            await message.remove_reaction("❌", ctx.guild.me)
-            await message.remove_reaction("➡", ctx.guild.me)
-        return None
