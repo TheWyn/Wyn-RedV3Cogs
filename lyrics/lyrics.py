@@ -3,9 +3,11 @@ from typing import MutableMapping, Mapping
 
 import discord
 import lavalink
+from bs4 import BeautifulSoup
 from redbot.core import commands, Config
 from redbot.core.utils.chat_formatting import pagify
-from requests_html import AsyncHTMLSession
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from requests_futures.sessions import FuturesSession
 
 BOT_SONG_RE = re.compile((r"((\[)|(\()).*(of?ficial|feat\.?|"
                           r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)]|\))"), flags=re.I)
@@ -86,12 +88,15 @@ class Lyrics(commands.Cog):
         try:
             async with ctx.typing():
                 results = await getlyrics(artistsong)
-            for page in pagify(results):
-                e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
-                                  colour=await self.bot.get_embed_color(ctx.channel))
-                e.set_footer(text='Requested by {}'.format(ctx.message.author))
-                await ctx.send(embed=e)
-
+                paged_embeds = []
+                paged_content = [p for p in pagify(results, page_length=900)]
+                for index, page in enumerate(paged_content):
+                    e = discord.Embed(title='Lyrics for __{}__'.format(artistsong), description=page,
+                                      colour=await self.bot.get_embed_color(ctx.channel))
+                    e.set_footer(text='Requested by {} | Page: {}/{}'.format(
+                        ctx.message.author, index, len(paged_content)))
+                    paged_embeds.append(e)
+            await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS)
         except discord.Forbidden:
             return await ctx.send("Missing embed permissions..")
 
@@ -150,11 +155,15 @@ class Lyrics(commands.Cog):
         try:
             async with ctx.typing():
                 results = await getlyrics(botsong)
-            for page in pagify(results):
-                e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
-                                  colour=await self.bot.get_embed_color(ctx.channel))
-                e.set_footer(text='Requested by {}'.format(ctx.message.author))
-                await ctx.send(embed=e)
+                paged_embeds = []
+                paged_content = [p for p in pagify(results, page_length=900)]
+                for index, page in enumerate(paged_content):
+                    e = discord.Embed(title='Lyrics for __{}__'.format(botsong), description=page,
+                                      colour=await self.bot.get_embed_color(ctx.channel))
+                    e.set_footer(text='Requested by {} | Page: {}/{}'.format(
+                        ctx.message.author, index, len(paged_content)))
+                    paged_embeds.append(e)
+            await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS)
         except discord.Forbidden:
             return await ctx.send("Missing embed permissions..")
 
@@ -162,8 +171,15 @@ class Lyrics(commands.Cog):
 async def getlyrics(artistsong: str):
     lyrics = ''
     try:
-        session = AsyncHTMLSession()
-        session.headers['user-agent'] = 'Mozilla/5.0 (Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0'
+        headers_ = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
 
         artistsong = re.sub('[^a-zA-Z0-9 \n.]', '', artistsong)
         artistsong = re.sub(r'\s+', ' ', artistsong).strip()
@@ -174,14 +190,15 @@ async def getlyrics(artistsong: str):
             lyric += i + "+"
         lyric = lyric[:-1]
 
-        r = await session.get("https://www.google.com/search?q=" + lyric + "&oq=" + lyric + "&ie=UTF-8")
+        session = FuturesSession()
+        r = session.get("https://www.google.com/search?q=" + lyric + "+lyrics", headers=headers_)
+        html = BeautifulSoup(r.result().text, 'html.parser')
+        lyric_div = html.find_all("span", jsname="YS01Ge")
 
-        lyric_div = r.html.find("span[jsname='YS01Ge']")
         lines = 0
-        lyric_div = lyric_div[4:]
 
-        for i in range(len(lyric_div)):
-            lyrics += (lyric_div[i].text + '\n')
+        for i in lyric_div:
+            lyrics += (i.get_text() + '\n')
             lines += 1
             if lines == 4:
                 lyrics += '\n'
@@ -190,12 +207,15 @@ async def getlyrics(artistsong: str):
         if lines >= 1:
             lyrics += '\n'
 
-        lyric_source = r.html.find("div[class='j04ED']")
-        for i in range(len(lyric_source)):
-            lyrics += ('_{}_'.format(lyric_source[i].text))
+        lyric_source = html.find_all("div", class_="j04ED")
+
+        for i in lyric_source:
+            lyrics += ('_{}_'.format(i.get_text()))
 
         if lyrics == '':
             lyrics = 'No Lyrics found.'
+
+        session.close()
 
     except Exception:
         lyrics = 'No lyrics found.'

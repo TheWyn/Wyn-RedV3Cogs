@@ -9,7 +9,8 @@
     "lyrics"
   ],
   "requirements": [
-    "requests-html"
+    "bs4",
+    "requests-futures"
   ],
   "min_python_version": [
     3, 6, 0
