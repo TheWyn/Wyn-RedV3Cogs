@@ -218,6 +218,6 @@ async def getlyrics(artistsong: str):
         session.close()
 
     except Exception:
-        lyrics = 'No lyrics found.'
+        lyrics = 'No lyrics found. (Exception)'
 
     return lyrics
