@@ -52,8 +52,11 @@ class Lyrics(commands.Cog):
                     paged_embeds = []
                     paged_content = [p for p in pagify(lyrics, page_length=900)]
                     for index, page in enumerate(paged_content):
-                        e = discord.Embed(title='{} by {}'.format(title, artist), description=page, colour=await self.bot.get_embed_color(notify_channel))
-                        e.set_footer(text='Requested by {} | Source: {} | Page: {}/{}'.format(track.requester, source, index,len(paged_content)))
+                        e = discord.Embed(title='{} by {}'.format(title, artist), description=page,
+                                          colour=await self.bot.get_embed_color(notify_channel))
+                        e.set_footer(
+                            text='Requested by {} | Source: {} | Page: {}/{}'.format(track.requester, source, index,
+                                                                                     len(paged_content)))
                         paged_embeds.append(e)
                 await menu(notify_channel, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
             except discord.Forbidden:
