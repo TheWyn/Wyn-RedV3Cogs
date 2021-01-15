@@ -12,6 +12,10 @@
     "bs4",
     "requests-futures"
   ],
+  "permissions": [
+    "add_reactions",
+    "embed_links"
+  ],
   "min_python_version": [
     3, 6, 0
   ],

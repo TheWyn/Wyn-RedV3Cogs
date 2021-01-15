@@ -7,6 +7,8 @@ from nyaa.utils import Utils as uTils
 
 
 class Nyaa(commands.Cog):
+    """Obtain torrents from nyaa."""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -14,11 +16,10 @@ class Nyaa(commands.Cog):
         """Nothing to delete."""
         return
 
-    '''
-     Return a list of dicts with the results of the query.
-    '''
-
     def search(self, keyword, **kwargs):
+        """
+         Return a list of dicts with the results of the query.
+        """
         category = kwargs.get('category', 0)
         subcategory = kwargs.get('subcategory', 0)
         filters = kwargs.get('filters', 0)
@@ -51,16 +52,19 @@ class Nyaa(commands.Cog):
         """Search anime."""
 
     @nyaa.command()
-    async def lookup(self, ctx, *, text: str):
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
+    async def lookup(self, ctx, *, show_name: str):
         """
         Returns torrents from search.
-        User arguments - Show name
+        User arguments - Search query to send for results.
+
+        Example: [p]nyaa lookup steins;gate 1080p dual audio
         """
         count = "5"
         pages = []
         try:
             async with ctx.typing():
-                result = self.search(text)
+                result = self.search(show_name)
                 msg = ""
             if len(result) < int(count):
                 count = len(result)
@@ -90,5 +94,5 @@ class Nyaa(commands.Cog):
                     msg = ""
                 await menu(ctx, pages, DEFAULT_CONTROLS)
 
-        except Exception:
-            await ctx.send(text + " not found.")
+        except AttributeError:
+            await ctx.send(show_name + " not found.")

@@ -214,8 +214,6 @@ class AniSearch(commands.Cog):
 
         data = (await self._request(SEARCH_ANIME_MANGA_QUERY, variables))['data']['Page']['media']
 
-        # print(data)
-
         if data is not None and len(data) > 0:
 
             # a list of embeds
@@ -259,7 +257,7 @@ class AniSearch(commands.Cog):
                                     id_mal=anime_manga['idMal'], anilist_url=link, type=cmd.lower()))
                 embeds.append(embed)
 
-            return embeds, data
+            return embeds
 
         else:
             return None
@@ -298,7 +296,7 @@ class AniSearch(commands.Cog):
                 embed.set_footer(text="Powered by Anilist")
                 embeds.append(embed)
 
-            return embeds, data
+            return embeds
 
         else:
             return None
@@ -348,18 +346,19 @@ class AniSearch(commands.Cog):
                 embed.set_footer(text="Powered by Anilist")
                 embeds.append(embed)
 
-            return embeds, data
+            return embeds
 
         else:
             return None
 
     @commands.command()
-    async def anime(self, ctx, *, entered_title):
-        """Searches for anime using Anilist"""
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
+    async def anime(self, ctx, *, anime_title):
+        """Searches for an anime using Anilist"""
 
         try:
             cmd = "ANIME"
-            embeds, data = await self._search_anime_manga(ctx, cmd, entered_title)
+            embeds = await self._search_anime_manga(ctx, cmd, anime_title)
 
             if embeds is not None:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
@@ -370,12 +369,13 @@ class AniSearch(commands.Cog):
             await ctx.send('No anime was found or there was an error in the process')
 
     @commands.command()
-    async def manga(self, ctx, *, entered_title):
-        """Searches for manga using Anilist"""
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
+    async def manga(self, ctx, *, manga_title):
+        """Searches for a manga using Anilist"""
 
         try:
             cmd = "MANGA"
-            embeds, data = await self._search_anime_manga(ctx, cmd, entered_title)
+            embeds = await self._search_anime_manga(ctx, cmd, manga_title)
 
             if embeds is not None:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
@@ -386,11 +386,12 @@ class AniSearch(commands.Cog):
             await ctx.send('No mangas were found or there was an error in the process')
 
     @commands.command()
-    async def character(self, ctx, *, entered_title):
-        """Searches for anime using Anilist"""
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
+    async def character(self, ctx, *, character_name):
+        """Searches for an anime character using Anilist"""
 
         try:
-            embeds, data = await self._search_character(ctx, entered_title)
+            embeds = await self._search_character(ctx, character_name)
 
             if embeds is not None:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
@@ -401,11 +402,12 @@ class AniSearch(commands.Cog):
             await ctx.send('No characters were found or there was an error in the process')
 
     @commands.command()
-    async def user(self, ctx, *, entered_title):
-        """Searches users using Anilist"""
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
+    async def user(self, ctx, *, anilist_user):
+        """Searches for a user on Anilist"""
 
         try:
-            embeds, data = await self._search_user(ctx, entered_title)
+            embeds = await self._search_user(ctx, anilist_user)
 
             if embeds is not None:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)

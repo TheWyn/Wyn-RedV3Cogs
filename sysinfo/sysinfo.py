@@ -15,7 +15,10 @@ try:
 except ImportError:
     psutilAvailable = False
 
+
 # Most of these scripts are from https://github.com/giampaolo/psutil/tree/master/scripts
+
+
 class SysInfo(commands.Cog):
     """Display system information for the machine running the bot"""
 
@@ -33,107 +36,39 @@ class SysInfo(commands.Cog):
         pass
 
     @sysinfo.command()
-    async def info(self, ctx, *args: str):
-        """Summary of cpu, memory, disk and network information
-         Usage: info [option]
-         Examples:
-             sysinfo           Shows all available info
-             sysinfo cpu       Shows CPU usage
-             sysinfo memory    Shows memory usage
-             sysinfo file      Shows full path of open files
-             sysinfo disk      Shows disk usage
-             sysinfo network   Shows network usage
-             sysinfo boot      Shows boot time
-         """
+    async def info(self, ctx):
+        """Shows all available info"""
+        return await infoo(self, ctx, "all")
 
-        options = ('cpu', 'memory', 'file', 'disk', 'network', 'boot')
+    @sysinfo.command()
+    async def cpu(self, ctx):
+        """Shows CPU usage"""
+        return await infoo(self, ctx, "cpu")
 
-        # CPU
-        cpu_count_p = psutil.cpu_count(logical=False)
-        cpu_count_l = psutil.cpu_count()
-        if cpu_count_p is None:
-            cpu_count_p = "N/A"
-        cpu_cs = ("CPU Count"
-                  "\n\t{0:<9}: {1:>3}".format("Physical", cpu_count_p) +
-                  "\n\t{0:<9}: {1:>3}".format("Logical", cpu_count_l))
-        psutil.cpu_percent(interval=None, percpu=True)
-        await asyncio.sleep(1)
-        cpu_p = psutil.cpu_percent(interval=None, percpu=True)
-        cpu_ps = ("CPU Usage"
-                  "\n\t{0:<8}: {1}".format("Per CPU", cpu_p) +
-                  "\n\t{0:<8}: {1:.1f}%".format("Overall", sum(cpu_p) / len(cpu_p)))
-        cpu_t = psutil.cpu_times()
-        width = max([len("{:,}".format(int(n))) for n in [cpu_t.user, cpu_t.system, cpu_t.idle]])
-        cpu_ts = ("CPU Times"
-                  "\n\t{0:<7}: {1:>{width},}".format("User", int(cpu_t.user), width=width) +
-                  "\n\t{0:<7}: {1:>{width},}".format("System", int(cpu_t.system), width=width) +
-                  "\n\t{0:<7}: {1:>{width},}".format("Idle", int(cpu_t.idle), width=width))
+    @sysinfo.command()
+    async def memory(self, ctx):
+        """Shows memory usage"""
+        return await infoo(self, ctx, "memory")
 
-        # Memory
-        mem_v = psutil.virtual_memory()
-        width = max([len(self._size(n)) for n in [mem_v.total, mem_v.available, (mem_v.total - mem_v.available)]])
-        mem_vs = ("Virtual Memory"
-                  "\n\t{0:<10}: {1:>{width}}".format("Total", self._size(mem_v.total), width=width) +
-                  "\n\t{0:<10}: {1:>{width}}".format("Available", self._size(mem_v.available), width=width) +
-                  "\n\t{0:<10}: {1:>{width}} {2}%".format("Used", self._size(mem_v.total - mem_v.available),
-                                                          mem_v.percent, width=width))
-        mem_s = psutil.swap_memory()
-        width = max([len(self._size(n)) for n in [mem_s.total, mem_s.free, (mem_s.total - mem_s.free)]])
-        mem_ss = ("Swap Memory"
-                  "\n\t{0:<6}: {1:>{width}}".format("Total", self._size(mem_s.total), width=width) +
-                  "\n\t{0:<6}: {1:>{width}}".format("Free", self._size(mem_s.free), width=width) +
-                  "\n\t{0:<6}: {1:>{width}} {2}%".format("Used", self._size(mem_s.total - mem_s.free),
-                                                         mem_s.percent, width=width))
+    @sysinfo.command()
+    async def file(self, ctx):
+        """Shows full path of open files"""
+        return await infoo(self, ctx, "file")
 
-        # Open files
-        open_f = psutil.Process().open_files()
-        open_fs = "Open File Handles\n\t"
-        if open_f:
-            if hasattr(open_f[0], "mode"):
-                open_fs += "\n\t".join(["{0} [{1}]".format(f.path, f.mode) for f in open_f])
-            else:
-                open_fs += "\n\t".join(["{0}".format(f.path) for f in open_f])
-        else:
-            open_fs += "None"
+    @sysinfo.command()
+    async def disk(self, ctx):
+        """Shows disk usage"""
+        return await infoo(self, ctx, "disk")
 
-        # Disk usage
-        disk_u = psutil.disk_usage(os.path.sep)
-        width = max([len(self._size(n)) for n in [disk_u.total, disk_u.free, disk_u.used]])
-        disk_us = ("Disk Usage"
-                   "\n\t{0:<6}: {1:>{width}}".format("Total", self._size(disk_u.total), width=width) +
-                   "\n\t{0:<6}: {1:>{width}}".format("Free", self._size(disk_u.free), width=width) +
-                   "\n\t{0:<6}: {1:>{width}} {2}%".format("Used", self._size(disk_u.used),
-                                                          disk_u.percent, width=width))
+    @sysinfo.command()
+    async def network(self, ctx):
+        """Shows network usage"""
+        return await infoo(self, ctx, "network")
 
-        # Network
-        net_io = psutil.net_io_counters()
-        width = max([len(self._size(n)) for n in [net_io.bytes_sent, net_io.bytes_recv]])
-        net_ios = ("Network"
-                   "\n\t{0:<11}: {1:>{width}}".format("Bytes sent", self._size(net_io.bytes_sent), width=width) +
-                   "\n\t{0:<11}: {1:>{width}}".format("Bytes recv", self._size(net_io.bytes_recv), width=width))
-
-        # Boot time
-        boot_s = ("Boot Time"
-                  "\n\t{0}".format(datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S")))
-
-        # Output
-        msg = ""
-        if not args or args[0].lower() not in options:
-            msg = "\n\n".join([cpu_cs, cpu_ps, cpu_ts, mem_vs, mem_ss, open_fs, disk_us, net_ios, boot_s])
-        elif args[0].lower() == 'cpu':
-            msg = "\n" + "\n\n".join([cpu_cs, cpu_ps, cpu_ts])
-        elif args[0].lower() == 'memory':
-            msg = "\n" + "\n\n".join([mem_vs, mem_ss])
-        elif args[0].lower() == 'file':
-            msg = "\n" + open_fs
-        elif args[0].lower() == 'disk':
-            msg = "\n" + disk_us
-        elif args[0].lower() == 'network':
-            msg = "\n" + net_ios
-        elif args[0].lower() == 'boot':
-            msg = "\n" + boot_s
-        await self._say(ctx, msg)
-        return
+    @sysinfo.command()
+    async def boot(self, ctx):
+        """Shows boot time"""
+        return await infoo(self, ctx, "boot")
 
     @sysinfo.command()
     async def df(self, ctx):
@@ -728,3 +663,94 @@ class SysInfo(commands.Cog):
             buf += line + "\n"
         if buf:
             await ctx.send(template.format(buf))
+
+
+async def infoo(self, ctx, args: str):
+    options = ('cpu', 'memory', 'file', 'disk', 'network', 'boot')
+
+    # CPU
+    cpu_count_p = psutil.cpu_count(logical=False)
+    cpu_count_l = psutil.cpu_count()
+    if cpu_count_p is None:
+        cpu_count_p = "N/A"
+    cpu_cs = ("CPU Count"
+              "\n\t{0:<9}: {1:>3}".format("Physical", cpu_count_p) +
+              "\n\t{0:<9}: {1:>3}".format("Logical", cpu_count_l))
+    psutil.cpu_percent(interval=None, percpu=True)
+    await asyncio.sleep(1)
+    cpu_p = psutil.cpu_percent(interval=None, percpu=True)
+    cpu_ps = ("CPU Usage"
+              "\n\t{0:<8}: {1}".format("Per CPU", cpu_p) +
+              "\n\t{0:<8}: {1:.1f}%".format("Overall", sum(cpu_p) / len(cpu_p)))
+    cpu_t = psutil.cpu_times()
+    width = max([len("{:,}".format(int(n))) for n in [cpu_t.user, cpu_t.system, cpu_t.idle]])
+    cpu_ts = ("CPU Times"
+              "\n\t{0:<7}: {1:>{width},}".format("User", int(cpu_t.user), width=width) +
+              "\n\t{0:<7}: {1:>{width},}".format("System", int(cpu_t.system), width=width) +
+              "\n\t{0:<7}: {1:>{width},}".format("Idle", int(cpu_t.idle), width=width))
+
+    # Memory
+    mem_v = psutil.virtual_memory()
+    width = max([len(self._size(n)) for n in [mem_v.total, mem_v.available, (mem_v.total - mem_v.available)]])
+    mem_vs = ("Virtual Memory"
+              "\n\t{0:<10}: {1:>{width}}".format("Total", self._size(mem_v.total), width=width) +
+              "\n\t{0:<10}: {1:>{width}}".format("Available", self._size(mem_v.available), width=width) +
+              "\n\t{0:<10}: {1:>{width}} {2}%".format("Used", self._size(mem_v.total - mem_v.available),
+                                                      mem_v.percent, width=width))
+    mem_s = psutil.swap_memory()
+    width = max([len(self._size(n)) for n in [mem_s.total, mem_s.free, (mem_s.total - mem_s.free)]])
+    mem_ss = ("Swap Memory"
+              "\n\t{0:<6}: {1:>{width}}".format("Total", self._size(mem_s.total), width=width) +
+              "\n\t{0:<6}: {1:>{width}}".format("Free", self._size(mem_s.free), width=width) +
+              "\n\t{0:<6}: {1:>{width}} {2}%".format("Used", self._size(mem_s.total - mem_s.free),
+                                                     mem_s.percent, width=width))
+
+    # Open files
+    open_f = psutil.Process().open_files()
+    open_fs = "Open File Handles\n\t"
+    if open_f:
+        if hasattr(open_f[0], "mode"):
+            open_fs += "\n\t".join(["{0} [{1}]".format(f.path, f.mode) for f in open_f])
+        else:
+            open_fs += "\n\t".join(["{0}".format(f.path) for f in open_f])
+    else:
+        open_fs += "None"
+
+    # Disk usage
+    disk_u = psutil.disk_usage(os.path.sep)
+    width = max([len(self._size(n)) for n in [disk_u.total, disk_u.free, disk_u.used]])
+    disk_us = ("Disk Usage"
+               "\n\t{0:<6}: {1:>{width}}".format("Total", self._size(disk_u.total), width=width) +
+               "\n\t{0:<6}: {1:>{width}}".format("Free", self._size(disk_u.free), width=width) +
+               "\n\t{0:<6}: {1:>{width}} {2}%".format("Used", self._size(disk_u.used),
+                                                      disk_u.percent, width=width))
+
+    # Network
+    net_io = psutil.net_io_counters()
+    width = max([len(self._size(n)) for n in [net_io.bytes_sent, net_io.bytes_recv]])
+    net_ios = ("Network"
+               "\n\t{0:<11}: {1:>{width}}".format("Bytes sent", self._size(net_io.bytes_sent), width=width) +
+               "\n\t{0:<11}: {1:>{width}}".format("Bytes recv", self._size(net_io.bytes_recv), width=width))
+
+    # Boot time
+    boot_s = ("Boot Time"
+              "\n\t{0}".format(datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S")))
+
+    # Output
+    msg = ""
+    if not args or args.lower() not in options:
+        msg = "\n\n".join([cpu_cs, cpu_ps, cpu_ts, mem_vs, mem_ss, open_fs, disk_us, net_ios, boot_s])
+    elif args.lower() == 'cpu':
+        msg = "\n" + "\n\n".join([cpu_cs, cpu_ps, cpu_ts])
+    elif args.lower() == 'memory':
+        msg = "\n" + "\n\n".join([mem_vs, mem_ss])
+    elif args.lower() == 'file':
+        msg = "\n" + open_fs
+    elif args.lower() == 'disk':
+        msg = "\n" + disk_us
+    elif args.lower() == 'network':
+        msg = "\n" + net_ios
+    elif args.lower() == 'boot':
+        msg = "\n" + boot_s
+    await self._say(ctx, msg)
+    return
