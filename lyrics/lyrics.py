@@ -188,7 +188,7 @@ async def getlyrics(artistsong):
     response_one = future.result()
     soup = BeautifulSoup(response_one.text, 'html.parser')
     bouncer = "Our systems have detected unusual traffic from your computer network"
-    if bouncer in soup:
+    if bouncer in soup.get_text():
         title_ = ""
         artist_ = ""
         lyrics_ = "Google has detected us being suspicious, try again later."
