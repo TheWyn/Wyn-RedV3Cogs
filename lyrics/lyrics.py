@@ -94,10 +94,11 @@ class Lyrics(commands.Cog):
         """
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(artistsong)
+            title = "" if title == "" else '{} by {}'.format(title, artist)
             paged_embeds = []
             paged_content = [p for p in pagify(lyrics, page_length=900)]
             for index, page in enumerate(paged_content):
-                e = discord.Embed(title='{} by {}'.format(title, artist), description=page,
+                e = discord.Embed(title='{}'.format(title), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
                 e.set_footer(
                     text='Requested by {} | Source: {} | Page: {}/{}'.format(ctx.message.author, source, index,
@@ -132,10 +133,11 @@ class Lyrics(commands.Cog):
 
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics('{} {}'.format(spot.artist, spot.title))
+            title = "" if title == "" else '{} by {}'.format(title, artist)
             paged_embeds = []
             paged_content = [p for p in pagify(lyrics, page_length=900)]
             for index, page in enumerate(paged_content):
-                e = discord.Embed(title='{} by {}'.format(title, artist), description=page,
+                e = discord.Embed(title='{}'.format(title), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
                 e.set_footer(
                     text='Requested by {} | Source: {} | Page: {}/{}'.format(ctx.message.author, source, index,
@@ -162,10 +164,11 @@ class Lyrics(commands.Cog):
 
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(botsong)
+            title = "" if title == "" else '{} by {}'.format(title, artist)
             paged_embeds = []
             paged_content = [p for p in pagify(lyrics, page_length=900)]
             for index, page in enumerate(paged_content):
-                e = discord.Embed(title='{} by {}'.format(title, artist), description=page,
+                e = discord.Embed(title='{}'.format(title), description=page,
                                   colour=await self.bot.get_embed_color(ctx.channel))
                 e.set_footer(
                     text='Requested by {} | Source: {} | Page: {}/{}'.format(ctx.message.author, source, index,
