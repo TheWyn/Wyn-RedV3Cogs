@@ -79,7 +79,6 @@ class Nyaa(commands.Cog):
                            "Leechers: " + res['leechers'] + "\n```"
                     pages.append(msg)
                     msg = ""
-                await menu(ctx, pages, DEFAULT_CONTROLS)
             else:
                 for res in result[0:int(count):]:
                     msg += "```Name: " + res['name'] + "\n" + \
@@ -92,7 +91,6 @@ class Nyaa(commands.Cog):
                            "Leechers: " + res['leechers'] + "\n```"
                     pages.append(msg)
                     msg = ""
-                await menu(ctx, pages, DEFAULT_CONTROLS)
-
+            await menu(ctx, pages, DEFAULT_CONTROLS)
         except AttributeError:
             await ctx.send(show_name + " not found.")

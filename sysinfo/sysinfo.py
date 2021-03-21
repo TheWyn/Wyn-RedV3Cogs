@@ -78,15 +78,17 @@ class SysInfo(commands.Cog):
                 await self._say(ctx, "psutil could not find any disk partitions")
                 return
 
-            maxlen = len(max([p.device for p in psutil.disk_partitions(all=False)], key=len))
+            maxlen = len(
+                max((p.device for p in psutil.disk_partitions(all=False)), key=len)
+            )
+
             template = "\n{0:<{1}} {2:>9} {3:>9} {4:>9} {5:>9}% {6:>9}  {7}"
             msg = template.format("Device", maxlen, "Total", "Used", "Free", "Used ", "Type", "Mount")
             for part in psutil.disk_partitions(all=False):
-                if os.name == 'nt':
-                    if 'cdrom' in part.opts or part.fstype == '':
-                        # skip cd-rom drives with no disk in it; they may raise ENOENT,
-                        # pop-up a Windows GUI error for a non-ready partition or just hang.
-                        continue
+                if os.name == 'nt' and ('cdrom' in part.opts or part.fstype == ''):
+                    # skip cd-rom drives with no disk in it; they may raise ENOENT,
+                    # pop-up a Windows GUI error for a non-ready partition or just hang.
+                    continue
                 usage = psutil.disk_usage(part.mountpoint)
                 msg += template.format(
                     part.device,
@@ -454,10 +456,7 @@ class SysInfo(commands.Cog):
                         user = p.username()
                     except KeyError:
                         if os.name == 'posix':
-                            if pinfo['uids']:
-                                user = str(pinfo['uids'].real)
-                            else:
-                                user = ''
+                            user = str(pinfo['uids'].real) if pinfo['uids'] else ''
                         else:
                             raise
                     except psutil.Error:
@@ -683,7 +682,11 @@ async def infoo(self, ctx, args: str):
                   "\n\t{0:<8}: {1}".format("Per CPU", cpu_p) +
                   "\n\t{0:<8}: {1:.1f}%".format("Overall", sum(cpu_p) / len(cpu_p)))
         cpu_t = psutil.cpu_times()
-        width = max([len("{:,}".format(int(n))) for n in [cpu_t.user, cpu_t.system, cpu_t.idle]])
+        width = max(
+            len("{:,}".format(int(n)))
+            for n in [cpu_t.user, cpu_t.system, cpu_t.idle]
+        )
+
         cpu_ts = ("CPU Times"
                   "\n\t{0:<7}: {1:>{width},}".format("User", int(cpu_t.user), width=width) +
                   "\n\t{0:<7}: {1:>{width},}".format("System", int(cpu_t.system), width=width) +
@@ -691,14 +694,26 @@ async def infoo(self, ctx, args: str):
 
         # Memory
         mem_v = psutil.virtual_memory()
-        width = max([len(self._size(n)) for n in [mem_v.total, mem_v.available, (mem_v.total - mem_v.available)]])
+        width = max(
+            len(self._size(n))
+            for n in [
+                mem_v.total,
+                mem_v.available,
+                (mem_v.total - mem_v.available),
+            ]
+        )
+
         mem_vs = ("Virtual Memory"
                   "\n\t{0:<10}: {1:>{width}}".format("Total", self._size(mem_v.total), width=width) +
                   "\n\t{0:<10}: {1:>{width}}".format("Available", self._size(mem_v.available), width=width) +
                   "\n\t{0:<10}: {1:>{width}} {2}%".format("Used", self._size(mem_v.total - mem_v.available),
                                                           mem_v.percent, width=width))
         mem_s = psutil.swap_memory()
-        width = max([len(self._size(n)) for n in [mem_s.total, mem_s.free, (mem_s.total - mem_s.free)]])
+        width = max(
+            len(self._size(n))
+            for n in [mem_s.total, mem_s.free, (mem_s.total - mem_s.free)]
+        )
+
         mem_ss = ("Swap Memory"
                   "\n\t{0:<6}: {1:>{width}}".format("Total", self._size(mem_s.total), width=width) +
                   "\n\t{0:<6}: {1:>{width}}".format("Free", self._size(mem_s.free), width=width) +
@@ -710,15 +725,19 @@ async def infoo(self, ctx, args: str):
         open_fs = "Open File Handles\n\t"
         if open_f:
             if hasattr(open_f[0], "mode"):
-                open_fs += "\n\t".join(["{0} [{1}]".format(f.path, f.mode) for f in open_f])
+                open_fs += "\n\t".join("{0} [{1}]".format(f.path, f.mode) for f in open_f)
             else:
-                open_fs += "\n\t".join(["{0}".format(f.path) for f in open_f])
+                open_fs += "\n\t".join("{0}".format(f.path) for f in open_f)
         else:
             open_fs += "None"
 
         # Disk usage
         disk_u = psutil.disk_usage(os.path.sep)
-        width = max([len(self._size(n)) for n in [disk_u.total, disk_u.free, disk_u.used]])
+        width = max(
+            len(self._size(n))
+            for n in [disk_u.total, disk_u.free, disk_u.used]
+        )
+
         disk_us = ("Disk Usage"
                    "\n\t{0:<6}: {1:>{width}}".format("Total", self._size(disk_u.total), width=width) +
                    "\n\t{0:<6}: {1:>{width}}".format("Free", self._size(disk_u.free), width=width) +
@@ -727,7 +746,7 @@ async def infoo(self, ctx, args: str):
 
         # Network
         net_io = psutil.net_io_counters()
-        width = max([len(self._size(n)) for n in [net_io.bytes_sent, net_io.bytes_recv]])
+        width = max(len(self._size(n)) for n in [net_io.bytes_sent, net_io.bytes_recv])
         net_ios = ("Network"
                    "\n\t{0:<11}: {1:>{width}}".format("Bytes sent", self._size(net_io.bytes_sent), width=width) +
                    "\n\t{0:<11}: {1:>{width}}".format("Bytes recv", self._size(net_io.bytes_recv), width=width))
