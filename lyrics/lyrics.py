@@ -183,7 +183,7 @@ async def getlyrics(artistsong):
                 "/": "%2F"}
     searchquery = ""
     for char in artistsong:
-        if char in percents.keys():
+        if char in percents:
             char = percents[char]
         searchquery += char
     session = FuturesSession()
