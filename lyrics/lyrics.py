@@ -111,7 +111,7 @@ class Lyrics(commands.Cog):
     async def spotify(self, ctx, user: Optional[discord.Member] = None):
         """
         Returns Lyrics from Discord Member song.
-        User arguments - Mention/ID
+        Optional User arguments - Mention/ID, no argument returns your own
 
         NOTE: This command uses Discord presence intent, enable in development portal.
 
