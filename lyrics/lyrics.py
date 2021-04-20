@@ -1,5 +1,5 @@
 import re
-from typing import MutableMapping, Mapping
+from typing import MutableMapping, Mapping, Optional
 
 import discord
 import lavalink
@@ -108,7 +108,7 @@ class Lyrics(commands.Cog):
 
     @lyrics.command()
     @commands.bot_has_permissions(embed_links=True, add_reactions=True)
-    async def spotify(self, ctx, user: discord.Member):
+    async def spotify(self, ctx, user: Optional[discord.Member] = None):
         """
         Returns Lyrics from Discord Member song.
         User arguments - Mention/ID
@@ -116,7 +116,8 @@ class Lyrics(commands.Cog):
         NOTE: This command uses Discord presence intent, enable in development portal.
 
         """
-        user = user or ctx.author
+        if user is None:
+          user = ctx.author
         spot = next((activity for activity in user.activities if isinstance(activity, discord.Spotify)), None)
         if spot is None:
             await ctx.send("{} is not listening to Spotify".format(user.name))
