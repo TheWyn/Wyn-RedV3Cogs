@@ -59,7 +59,7 @@ class Lyrics(commands.Cog):
                 async with notify_channel.typing():
                     title, artist, lyrics, source = await getlyrics(botsong)
                     paged_embeds = []
-                    paged_content = [p for p in pagify(lyrics, page_length=900)]
+                    paged_content = list(pagify(lyrics, page_length=900))
                     for index, page in enumerate(paged_content):
                         e = discord.Embed(
                             title="{} by {}".format(title, artist),
@@ -120,7 +120,7 @@ class Lyrics(commands.Cog):
             title, artist, lyrics, source = await getlyrics(artistsong)
             title = "" if title == "" else "{} by {}".format(title, artist)
             paged_embeds = []
-            paged_content = [p for p in pagify(lyrics, page_length=900)]
+            paged_content = list(pagify(lyrics, page_length=900))
             for index, page in enumerate(paged_content):
                 e = discord.Embed(
                     title="{}".format(title),
@@ -180,7 +180,7 @@ class Lyrics(commands.Cog):
             )
             title = "" if title == "" else "{} by {}".format(title, artist)
             paged_embeds = []
-            paged_content = [p for p in pagify(lyrics, page_length=900)]
+            paged_content = list(pagify(lyrics, page_length=900))
             for index, page in enumerate(paged_content):
                 e = discord.Embed(
                     title="{}".format(title),
@@ -202,21 +202,18 @@ class Lyrics(commands.Cog):
         Returns Lyrics for bot's current track.
         """
         aikasbaby = self.bot.get_cog("Audio")
-        if aikasbaby is not None:
-            try:
-                botsong = BOT_SONG_RE.sub("", self._cache[ctx.guild.id]).strip()
-            except AttributeError:
-                return await ctx.send("Nothing playing.")
-            except KeyError:
-                return await ctx.send("Nothing playing.")
-        else:
+        if aikasbaby is None:
             return await ctx.send("Audio not loaded.")
 
+        try:
+            botsong = BOT_SONG_RE.sub("", self._cache[ctx.guild.id]).strip()
+        except (AttributeError, KeyError):
+            return await ctx.send("Nothing playing.")
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(botsong)
             title = "" if title == "" else "{} by {}".format(title, artist)
             paged_embeds = []
-            paged_content = [p for p in pagify(lyrics, page_length=900)]
+            paged_content = list(pagify(lyrics, page_length=900))
             for index, page in enumerate(paged_content):
                 e = discord.Embed(
                     title="{}".format(title),
