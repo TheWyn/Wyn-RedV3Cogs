@@ -1,16 +1,21 @@
 import re
-from typing import MutableMapping, Mapping, Optional
+from typing import Mapping, MutableMapping, Optional
 
 import discord
 import lavalink
 from bs4 import BeautifulSoup
-from redbot.core import commands, Config
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from requests_futures.sessions import FuturesSession
 
-BOT_SONG_RE = re.compile((r"((\[)|(\()).*(of?ficial|feat\.?|"
-                          r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)]|\))"), flags=re.I)
+BOT_SONG_RE = re.compile(
+    (
+        r"((\[)|(\()).*(of?ficial|feat\.?|"
+        r"ft\.?|audio|video|lyrics?|remix|HD).*(?(2)]|\))"
+    ),
+    flags=re.I,
+)
 
 
 class Lyrics(commands.Cog):
@@ -19,7 +24,9 @@ class Lyrics(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._cache: MutableMapping = {}
-        self.config: Config = Config.get_conf(self, 179756535751114753, force_registration=True)
+        self.config: Config = Config.get_conf(
+            self, 179756535751114753, force_registration=True
+        )
         default_guild: Mapping = dict(auto_lyrics=False)
         self.config.register_guild(**default_guild)
 
@@ -31,7 +38,9 @@ class Lyrics(commands.Cog):
         return
 
     @commands.Cog.listener()
-    async def on_red_audio_track_start(self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member):
+    async def on_red_audio_track_start(
+        self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
+    ):
         if not (guild and track):
             return
         if track.author.lower() not in track.title.lower():
@@ -45,25 +54,40 @@ class Lyrics(commands.Cog):
             if not notify_channel:
                 return
             notify_channel = self.bot.get_channel(notify_channel)
-            botsong = BOT_SONG_RE.sub('', self._cache[guild.id]).strip()
+            botsong = BOT_SONG_RE.sub("", self._cache[guild.id]).strip()
             try:
                 async with notify_channel.typing():
                     title, artist, lyrics, source = await getlyrics(botsong)
                     paged_embeds = []
                     paged_content = [p for p in pagify(lyrics, page_length=900)]
                     for index, page in enumerate(paged_content):
-                        e = discord.Embed(title='{} by {}'.format(title, artist), description=page,
-                                          colour=await self.bot.get_embed_color(notify_channel))
+                        e = discord.Embed(
+                            title="{} by {}".format(title, artist),
+                            description=page,
+                            colour=await self.bot.get_embed_color(notify_channel),
+                        )
                         e.set_footer(
-                            text='Requested by {} | Source: {} | Page: {}/{}'.format(track.requester, source, index,
-                                                                                     len(paged_content)))
+                            text="Requested by {} | Source: {} | Page: {}/{}".format(
+                                track.requester,
+                                source,
+                                int(index + 1),
+                                len(paged_content),
+                            )
+                        )
                         paged_embeds.append(e)
-                await menu(notify_channel, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
+                await menu(
+                    notify_channel,
+                    paged_embeds,
+                    controls=DEFAULT_CONTROLS,
+                    timeout=180.0,
+                )
             except discord.Forbidden:
                 return await notify_channel.send("Missing embed permissions..")
 
     @commands.Cog.listener()
-    async def on_red_audio_queue_end(self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member):
+    async def on_red_audio_queue_end(
+        self, guild: discord.Guild, track: lavalink.Track, requester: discord.Member
+    ):
         if not (guild and track):
             return
         if guild.id in self._cache:
@@ -94,15 +118,20 @@ class Lyrics(commands.Cog):
         """
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(artistsong)
-            title = "" if title == "" else '{} by {}'.format(title, artist)
+            title = "" if title == "" else "{} by {}".format(title, artist)
             paged_embeds = []
             paged_content = [p for p in pagify(lyrics, page_length=900)]
             for index, page in enumerate(paged_content):
-                e = discord.Embed(title='{}'.format(title), description=page,
-                                  colour=await self.bot.get_embed_color(ctx.channel))
+                e = discord.Embed(
+                    title="{}".format(title),
+                    description=page,
+                    colour=await self.bot.get_embed_color(ctx.channel),
+                )
                 e.set_footer(
-                    text='Requested by {} | Source: {} | Page: {}/{}'.format(ctx.message.author, source, index,
-                                                                             len(paged_content)))
+                    text="Requested by {} | Source: {} | Page: {}/{}".format(
+                        ctx.message.author, source, int(index + 1), len(paged_content)
+                    )
+                )
                 paged_embeds.append(e)
         await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
 
@@ -117,32 +146,52 @@ class Lyrics(commands.Cog):
 
         """
         if user is None:
-          user = ctx.author
-        spot = next((activity for activity in user.activities if isinstance(activity, discord.Spotify)), None)
+            user = ctx.author
+        spot = next(
+            (
+                activity
+                for activity in user.activities
+                if isinstance(activity, discord.Spotify)
+            ),
+            None,
+        )
         if spot is None:
             await ctx.send("{} is not listening to Spotify".format(user.name))
             return
-        embed = discord.Embed(title="{}'s Spotify".format(user.name),
-                              colour=await self.bot.get_embed_color(ctx.channel))
+        embed = discord.Embed(
+            title="{}'s Spotify".format(user.name),
+            colour=await self.bot.get_embed_color(ctx.channel),
+        )
         embed.add_field(name="Song", value=spot.title)
         embed.add_field(name="Artist", value=spot.artist)
         embed.add_field(name="Album", value=spot.album)
-        embed.add_field(name="Track Link",
-                        value="[{}](https://open.spotify.com/track/{})".format(spot.title, spot.track_id))
+        embed.add_field(
+            name="Track Link",
+            value="[{}](https://open.spotify.com/track/{})".format(
+                spot.title, spot.track_id
+            ),
+        )
         embed.set_thumbnail(url=spot.album_cover_url)
         await ctx.send(embed=embed)
 
         async with ctx.typing():
-            title, artist, lyrics, source = await getlyrics('{} {}'.format(spot.artist, spot.title))
-            title = "" if title == "" else '{} by {}'.format(title, artist)
+            title, artist, lyrics, source = await getlyrics(
+                "{} {}".format(spot.artist, spot.title)
+            )
+            title = "" if title == "" else "{} by {}".format(title, artist)
             paged_embeds = []
             paged_content = [p for p in pagify(lyrics, page_length=900)]
             for index, page in enumerate(paged_content):
-                e = discord.Embed(title='{}'.format(title), description=page,
-                                  colour=await self.bot.get_embed_color(ctx.channel))
+                e = discord.Embed(
+                    title="{}".format(title),
+                    description=page,
+                    colour=await self.bot.get_embed_color(ctx.channel),
+                )
                 e.set_footer(
-                    text='Requested by {} | Source: {} | Page: {}/{}'.format(ctx.message.author, source, index,
-                                                                             len(paged_content)))
+                    text="Requested by {} | Source: {} | Page: {}/{}".format(
+                        ctx.message.author, source, int(index + 1), len(paged_content)
+                    )
+                )
                 paged_embeds.append(e)
         await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
 
@@ -152,10 +201,10 @@ class Lyrics(commands.Cog):
         """
         Returns Lyrics for bot's current track.
         """
-        aikasbaby = self.bot.get_cog('Audio')
+        aikasbaby = self.bot.get_cog("Audio")
         if aikasbaby is not None:
             try:
-                botsong = BOT_SONG_RE.sub('', self._cache[ctx.guild.id]).strip()
+                botsong = BOT_SONG_RE.sub("", self._cache[ctx.guild.id]).strip()
             except AttributeError:
                 return await ctx.send("Nothing playing.")
             except KeyError:
@@ -165,23 +214,44 @@ class Lyrics(commands.Cog):
 
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(botsong)
-            title = "" if title == "" else '{} by {}'.format(title, artist)
+            title = "" if title == "" else "{} by {}".format(title, artist)
             paged_embeds = []
             paged_content = [p for p in pagify(lyrics, page_length=900)]
             for index, page in enumerate(paged_content):
-                e = discord.Embed(title='{}'.format(title), description=page,
-                                  colour=await self.bot.get_embed_color(ctx.channel))
+                e = discord.Embed(
+                    title="{}".format(title),
+                    description=page,
+                    colour=await self.bot.get_embed_color(ctx.channel),
+                )
                 e.set_footer(
-                    text='Requested by {} | Source: {} | Page: {}/{}'.format(ctx.message.author, source, index,
-                                                                             len(paged_content)))
+                    text="Requested by {} | Source: {} | Page: {}/{}".format(
+                        ctx.message.author, source, int(index + 1), len(paged_content)
+                    )
+                )
                 paged_embeds.append(e)
         await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
 
 
 async def getlyrics(artistsong):
-    percents = {" ": "+", "!": "%21", '"': "%22", "#": "%23", "$": "%24", "%": "%25", "&": "%26", "'": "%27",
-                "(": "%28", ")": "%29", "*": "%2A", "+": "%2B", "`": "%60", ",": "%2C", "-": "%2D", ".": "%2E",
-                "/": "%2F"}
+    percents = {
+        " ": "+",
+        "!": "%21",
+        '"': "%22",
+        "#": "%23",
+        "$": "%24",
+        "%": "%25",
+        "&": "%26",
+        "'": "%27",
+        "(": "%28",
+        ")": "%29",
+        "*": "%2A",
+        "+": "%2B",
+        "`": "%60",
+        ",": "%2C",
+        "-": "%2D",
+        ".": "%2E",
+        "/": "%2F",
+    }
     searchquery = ""
     for char in artistsong:
         if char in percents:
@@ -190,7 +260,7 @@ async def getlyrics(artistsong):
     session = FuturesSession()
     future = session.get("https://google.com/search?q=" + searchquery + "+lyrics")
     response_one = future.result()
-    soup = BeautifulSoup(response_one.text, 'html.parser')
+    soup = BeautifulSoup(response_one.text, "html.parser")
     bouncer = "Our systems have detected unusual traffic from your computer network"
     if bouncer in soup.get_text():
         title_ = ""
@@ -199,11 +269,18 @@ async def getlyrics(artistsong):
         source_ = ""
     else:
         try:
-            title_ = soup.find('span', class_="BNeawe tAd8D AP7Wnd").get_text()
-            artist_ = soup.find_all('span', class_="BNeawe s3v9rd AP7Wnd")[-1].get_text()
-            lyrics_ = soup.find_all('div', class_="BNeawe tAd8D AP7Wnd")[-1].get_text()
-            source_ = soup.find_all('span', class_="uEec3 AP7Wnd")[-1].get_text()
+            title_ = soup.find("span", class_="BNeawe tAd8D AP7Wnd").get_text()
+            artist_ = soup.find_all("span", class_="BNeawe s3v9rd AP7Wnd")[
+                -1
+            ].get_text()
+            lyrics_ = soup.find_all("div", class_="BNeawe tAd8D AP7Wnd")[-1].get_text()
+            source_ = soup.find_all("span", class_="uEec3 AP7Wnd")[-1].get_text()
         except AttributeError:
-            title_, artist_, lyrics_, source_ = "", "", "Not able to find the lyrics for {}.".format(searchquery), ""
+            title_, artist_, lyrics_, source_ = (
+                "",
+                "",
+                "Not able to find the lyrics for {}.".format(searchquery),
+                "",
+            )
     session.close()
     return title_, artist_, lyrics_, source_
