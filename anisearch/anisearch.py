@@ -137,7 +137,7 @@ class AniSearch(commands.Cog):
 
     def format_name(self, first_name, last_name):  # Combines first_name and last_name and/or shows either of the two
         if first_name and last_name:
-            return first_name + " " + last_name
+            return f"{first_name} {last_name}"
         elif first_name:
             return first_name
         elif last_name:
@@ -161,14 +161,11 @@ class AniSearch(commands.Cog):
         description = self.clean_spoilers(description)
         description = self.clean_html(description)
         description = "\n".join(description.split("\n")[:5])
-        if len(description) > 400:
-            return description[:400] + "..."
-        else:
-            return description
+        return f"{description[:400]}..." if len(description) > 400 else description
 
     def list_maximum(self, items):  # Limits to 5 strings than adds "+X more"
         if len(items) > 5:
-            return items[:5] + ["+ " + str(len(items) - 5) + " more"]
+            return items[:5] + [f"+ {str(len(items) - 5)} more"]
         else:
             return items
 
@@ -220,7 +217,7 @@ class AniSearch(commands.Cog):
 
         for anime_manga in data:
             # Sets up various variables for Embed
-            link = 'https://anilist.co/{}/{}'.format(cmd.lower(), anime_manga['id'])
+            link = f"https://anilist.co/{cmd.lower()}/{anime_manga['id']}"
             description = anime_manga['description']
             title = anime_manga['title']['english'] or anime_manga['title']['romaji']
             if anime_manga.get('nextAiringEpisode'):
@@ -275,13 +272,19 @@ class AniSearch(commands.Cog):
 
         for character in data:
             # Sets up various variables for Embed
-            link = 'https://anilist.co/character/{}'.format(character['id'])
+            link = f"https://anilist.co/character/{character['id']}"
             character_anime = [
-                "[{}]({})".format(anime["title"]["userPreferred"], "https://anilist.co/anime/" + str(anime["id"]))
-                for anime in character["media"]["nodes"] if anime["type"] == "ANIME"]
+                f'[{anime["title"]["userPreferred"]}]({"https://anilist.co/anime/" + str(anime["id"])})'
+                for anime in character["media"]["nodes"]
+                if anime["type"] == "ANIME"
+            ]
+
             character_manga = [
-                "[{}]({})".format(manga["title"]["userPreferred"], "https://anilist.co/manga/" + str(manga["id"]))
-                for manga in character["media"]["nodes"] if manga["type"] == "MANGA"]
+                f'[{manga["title"]["userPreferred"]}]({"https://anilist.co/manga/" + str(manga["id"])})'
+                for manga in character["media"]["nodes"]
+                if manga["type"] == "MANGA"
+            ]
+
             embed = discord.Embed(title=self.format_name(character['name']['first'], character['name']['last']))
             embed.url = link
             embed.description = self.description_parser(character['description'])
@@ -312,8 +315,8 @@ class AniSearch(commands.Cog):
 
         for user in data:
             # Sets up various variables for Embed
-            link = 'https://anilist.co/user/{}'.format(user['id'])
-            title = "[{}]({})".format(user['name'], link)
+            link = f"https://anilist.co/user/{user['id']}"
+            title = f"[{user['name']}]({link})"
             title = user['name']
 
             embed = discord.Embed(title=title)
@@ -324,19 +327,25 @@ class AniSearch(commands.Cog):
                             value=datetime.timedelta(minutes=int(user['stats']['watchedTime'])))
             embed.add_field(name="Chapters read", value=user['stats'].get('chaptersRead', 'N/A'))
             if user["favourites"]["anime"]['nodes']:
-                fav_anime = ["[{}]({})".format(anime["title"]["userPreferred"],
-                                               "https://anilist.co/anime/" + str(anime["id"])) for anime in
-                             user["favourites"]["anime"]["nodes"]]
+                fav_anime = [
+                    f'[{anime["title"]["userPreferred"]}]({"https://anilist.co/anime/" + str(anime["id"])})'
+                    for anime in user["favourites"]["anime"]["nodes"]
+                ]
+
                 embed.add_field(name="Favourite anime", value="\n".join(self.list_maximum(fav_anime)))
             if user["favourites"]["manga"]['nodes']:
-                fav_manga = ["[{}]({})".format(manga["title"]["userPreferred"],
-                                               "https://anilist.co/manga/" + str(manga["id"])) for manga in
-                             user["favourites"]["manga"]["nodes"]]
+                fav_manga = [
+                    f'[{manga["title"]["userPreferred"]}]({"https://anilist.co/manga/" + str(manga["id"])})'
+                    for manga in user["favourites"]["manga"]["nodes"]
+                ]
+
                 embed.add_field(name="Favourite manga", value="\n".join(self.list_maximum(fav_manga)))
             if user["favourites"]["characters"]['nodes']:
-                fav_ch = ["[{}]({})".format(self.format_name(character["name"]["first"], character["name"]["last"]),
-                                            "https://anilist.co/character/" + str(character["id"])) for character in
-                          user["favourites"]["characters"]["nodes"]]
+                fav_ch = [
+                    f'[{self.format_name(character["name"]["first"], character["name"]["last"])}]({"https://anilist.co/character/" + str(character["id"])})'
+                    for character in user["favourites"]["characters"]["nodes"]
+                ]
+
                 embed.add_field(name="Favourite characters", value="\n".join(self.list_maximum(fav_ch)))
             embed.set_footer(text="Powered by Anilist")
             embeds.append(embed)

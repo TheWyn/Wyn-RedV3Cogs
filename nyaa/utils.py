@@ -5,9 +5,9 @@
 
 class Utils:
 
-    def nyaa_categories(b):
+    def nyaa_categories(self):
         category_name = ""
-        c = b.replace('/?c=', '')
+        c = self.replace('/?c=', '')
         cats = c.split('_')
 
         cat = cats[0]
@@ -64,17 +64,20 @@ class Utils:
         }
 
         try:
-            category_name = "{} - {}".format(categories[cat]['name'], categories[cat]['subcats'][subcat])
+            category_name = (
+                f"{categories[cat]['name']} - {categories[cat]['subcats'][subcat]}"
+            )
+
         except:
             pass
 
         return category_name
 
-    def parse_nyaa(table_rows, limit):
+    def parse_nyaa(self, limit):
 
         torrents = []
 
-        for row in table_rows[:limit]:
+        for row in self[:limit]:
             block = []
 
             for td in row.find_all('td'):
@@ -91,9 +94,9 @@ class Utils:
             try:
                 torrent = {
                     'category': Utils.nyaa_categories(block[0]),
-                    'url': "http://nyaa.si{}".format(block[1]),
+                    'url': f"http://nyaa.si{block[1]}",
                     'name': block[2],
-                    'download_url': "http://nyaa.si{}".format(block[4]),
+                    'download_url': f"http://nyaa.si{block[4]}",
                     'magnet': block[5],
                     'size': block[6],
                     'date': block[7],
@@ -101,6 +104,7 @@ class Utils:
                     'leechers': block[9],
                     'completed_downloads': block[10],
                 }
+
 
                 torrents.append(torrent)
             except IndexError as ie:

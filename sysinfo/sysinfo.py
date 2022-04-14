@@ -109,8 +109,9 @@ class SysInfo(commands.Cog):
             virt = psutil.virtual_memory()
             swap = psutil.swap_memory()
             template = "\n{0:>7} {1:>9} {2:>9} {3:>9} {4:>8}% {5:>9} {6:>9} {7:>9}"
-            msg = template.format("", "Total", "Used", "Free", "Used ", "Shared", "Buffers", "Cache")
-            msg += template.format(
+            msg = template.format(
+                "", "Total", "Used", "Free", "Used ", "Shared", "Buffers", "Cache"
+            ) + template.format(
                 "Memory:",
                 self._size(virt.total),
                 self._size(virt.used),
@@ -118,7 +119,9 @@ class SysInfo(commands.Cog):
                 virt.percent,
                 self._size(getattr(virt, 'shared', 0)),
                 self._size(getattr(virt, 'buffers', 0)),
-                self._size(getattr(virt, 'cached', 0)))
+                self._size(getattr(virt, 'cached', 0)),
+            )
+
             msg += template.format(
                 "Swap:",
                 self._size(swap.total),
@@ -190,7 +193,7 @@ class SysInfo(commands.Cog):
                 return
 
             # first get a list of all processes and disk io counters
-            procs = [p for p in psutil.process_iter()]
+            procs = list(psutil.process_iter())
             for p in procs[:]:
                 try:
                     p._before = p.io_counters()
@@ -251,8 +254,10 @@ class SysInfo(commands.Cog):
     async def meminfo(self, ctx):
         """System memory information"""
         async with ctx.typing():
-            msg = "\nMEMORY\n------\n"
-            msg += "{0}\n".format(self._sprintf_ntuple(psutil.virtual_memory()))
+            msg = "\nMEMORY\n------\n" + "{0}\n".format(
+                self._sprintf_ntuple(psutil.virtual_memory())
+            )
+
             msg += "SWAP\n----\n"
             msg += "{0}\n".format(self._sprintf_ntuple(psutil.swap_memory()))
         await self._say(ctx, msg)
@@ -432,8 +437,7 @@ class SysInfo(commands.Cog):
             attrs = ['pid', 'cpu_percent', 'memory_percent', 'name', 'cpu_times',
                      'create_time', 'memory_info', 'status']
             if os.name == 'posix':
-                attrs.append('uids')
-                attrs.append('terminal')
+                attrs.extend(('uids', 'terminal'))
             msg = template.format("USER", "PID", "%CPU", "%MEM", "VSZ", "RSS", "TTY",
                                   "STAT", "START", "TIME", "COMMAND")
             for p in psutil.process_iter():
@@ -610,9 +614,13 @@ class SysInfo(commands.Cog):
                 msg += "{0:<12} {1:<10} {2:<10} {3:<14} {4}\n".format(
                     user.name,
                     user.terminal or '-',
-                    datetime.datetime.fromtimestamp(user.started).strftime("%Y-%m-%d %H:%M"),
-                    "(%s)" % user.host if user.host else "",
-                    proc_name)
+                    datetime.datetime.fromtimestamp(user.started).strftime(
+                        "%Y-%m-%d %H:%M"
+                    ),
+                    f"({user.host})" if user.host else "",
+                    proc_name,
+                )
+
             if not msg:
                 msg = "No users logged in"
         await self._say(ctx, msg)

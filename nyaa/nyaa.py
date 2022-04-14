@@ -29,22 +29,23 @@ class Nyaa(commands.Cog):
 
         if page > 0:
             r = session.get(
-                "http://nyaa.si/?f={}&c={}_{}&q={}&p={}&o=desc&s=seeders".format(filters, category, subcategory,
-                                                                                 keyword, page), headers=headers)
+                f"http://nyaa.si/?f={filters}&c={category}_{subcategory}&q={keyword}&p={page}&o=desc&s=seeders",
+                headers=headers,
+            )
+
         else:
             r = session.get(
-                "http://nyaa.si/?f={}&c={}_{}&q={}&o=desc&s=seeders".format(filters, category, subcategory,
-                                                                            keyword), headers=headers)
+                f"http://nyaa.si/?f={filters}&c={category}_{subcategory}&q={keyword}&o=desc&s=seeders",
+                headers=headers,
+            )
+
 
         soup = BeautifulSoup(r.result().text, 'html.parser')
-        rows = soup.select('table tr')
-
-        results = {}
-
-        if rows:
-            results = uTils.parse_nyaa(rows, limit=None)
-
-        return results
+        return (
+            uTils.parse_nyaa(rows, limit=None)
+            if (rows := soup.select('table tr'))
+            else {}
+        )
 
     @commands.group()
     @commands.guild_only()
@@ -68,7 +69,7 @@ class Nyaa(commands.Cog):
                 msg = ""
             if len(result) < int(count):
                 count = len(result)
-                for res in result[0:int(count):]:
+                for res in result[:count]:
                     msg += "``` Name: " + res['name'] + "\n" + \
                            "Category: " + res['category'] + "\n" + \
                            "Url: " + res['url'] + "\n" + \
@@ -80,7 +81,7 @@ class Nyaa(commands.Cog):
                     pages.append(msg)
                     msg = ""
             else:
-                for res in result[0:int(count):]:
+                for res in result[:int(count)]:
                     msg += "```Name: " + res['name'] + "\n" + \
                            "Category: " + res['category'] + "\n" + \
                            "Url: " + res['url'] + "\n" + \
@@ -93,4 +94,4 @@ class Nyaa(commands.Cog):
                     msg = ""
             await menu(ctx, pages, DEFAULT_CONTROLS)
         except AttributeError:
-            await ctx.send(show_name + " not found.")
+            await ctx.send(f"{show_name} not found.")
