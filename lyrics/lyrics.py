@@ -59,21 +59,18 @@ class Lyrics(commands.Cog):
                 async with notify_channel.typing():
                     title, artist, lyrics, source = await getlyrics(botsong)
                     paged_embeds = []
-                    paged_content = [p for p in pagify(lyrics, page_length=900)]
+                    paged_content = list(pagify(lyrics, page_length=900))
                     for index, page in enumerate(paged_content):
                         e = discord.Embed(
-                            title="{} by {}".format(title, artist),
+                            title=f"{title} by {artist}",
                             description=page,
                             colour=await self.bot.get_embed_color(notify_channel),
                         )
+
                         e.set_footer(
-                            text="Requested by {} | Source: {} | Page: {}/{}".format(
-                                track.requester,
-                                source,
-                                int(index + 1),
-                                len(paged_content),
-                            )
+                            text=f"Requested by {track.requester} | Source: {source} | Page: {int(index + 1)}/{len(paged_content)}"
                         )
+
                         paged_embeds.append(e)
                 await menu(
                     notify_channel,
@@ -118,20 +115,20 @@ class Lyrics(commands.Cog):
         """
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(artistsong)
-            title = "" if title == "" else "{} by {}".format(title, artist)
+            title = "" if title == "" else f"{title} by {artist}"
             paged_embeds = []
-            paged_content = [p for p in pagify(lyrics, page_length=900)]
+            paged_content = list(pagify(lyrics, page_length=900))
             for index, page in enumerate(paged_content):
                 e = discord.Embed(
-                    title="{}".format(title),
+                    title=f"{title}",
                     description=page,
                     colour=await self.bot.get_embed_color(ctx.channel),
                 )
+
                 e.set_footer(
-                    text="Requested by {} | Source: {} | Page: {}/{}".format(
-                        ctx.message.author, source, int(index + 1), len(paged_content)
-                    )
+                    text=f"Requested by {ctx.message.author} | Source: {source} | Page: {int(index + 1)}/{len(paged_content)}"
                 )
+
                 paged_embeds.append(e)
         await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
 
@@ -156,42 +153,40 @@ class Lyrics(commands.Cog):
             None,
         )
         if spot is None:
-            await ctx.send("{} is not listening to Spotify".format(user.name))
+            await ctx.send(f"{user.name} is not listening to Spotify")
             return
         embed = discord.Embed(
-            title="{}'s Spotify".format(user.name),
+            title=f"{user.name}'s Spotify",
             colour=await self.bot.get_embed_color(ctx.channel),
         )
+
         embed.add_field(name="Song", value=spot.title)
         embed.add_field(name="Artist", value=spot.artist)
         embed.add_field(name="Album", value=spot.album)
         embed.add_field(
             name="Track Link",
-            value="[{}](https://open.spotify.com/track/{})".format(
-                spot.title, spot.track_id
-            ),
+            value=f"[{spot.title}](https://open.spotify.com/track/{spot.track_id})",
         )
+
         embed.set_thumbnail(url=spot.album_cover_url)
         await ctx.send(embed=embed)
 
         async with ctx.typing():
-            title, artist, lyrics, source = await getlyrics(
-                "{} {}".format(spot.artist, spot.title)
-            )
-            title = "" if title == "" else "{} by {}".format(title, artist)
+            title, artist, lyrics, source = await getlyrics(f"{spot.artist} {spot.title}")
+            title = "" if title == "" else f"{title} by {artist}"
             paged_embeds = []
-            paged_content = [p for p in pagify(lyrics, page_length=900)]
+            paged_content = list(pagify(lyrics, page_length=900))
             for index, page in enumerate(paged_content):
                 e = discord.Embed(
-                    title="{}".format(title),
+                    title=f"{title}",
                     description=page,
                     colour=await self.bot.get_embed_color(ctx.channel),
                 )
+
                 e.set_footer(
-                    text="Requested by {} | Source: {} | Page: {}/{}".format(
-                        ctx.message.author, source, int(index + 1), len(paged_content)
-                    )
+                    text=f"Requested by {ctx.message.author} | Source: {source} | Page: {int(index + 1)}/{len(paged_content)}"
                 )
+
                 paged_embeds.append(e)
         await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
 
@@ -202,32 +197,29 @@ class Lyrics(commands.Cog):
         Returns Lyrics for bot's current track.
         """
         aikasbaby = self.bot.get_cog("Audio")
-        if aikasbaby is not None:
-            try:
-                botsong = BOT_SONG_RE.sub("", self._cache[ctx.guild.id]).strip()
-            except AttributeError:
-                return await ctx.send("Nothing playing.")
-            except KeyError:
-                return await ctx.send("Nothing playing.")
-        else:
+        if aikasbaby is None:
             return await ctx.send("Audio not loaded.")
 
+        try:
+            botsong = BOT_SONG_RE.sub("", self._cache[ctx.guild.id]).strip()
+        except (AttributeError, KeyError):
+            return await ctx.send("Nothing playing.")
         async with ctx.typing():
             title, artist, lyrics, source = await getlyrics(botsong)
-            title = "" if title == "" else "{} by {}".format(title, artist)
+            title = "" if title == "" else f"{title} by {artist}"
             paged_embeds = []
-            paged_content = [p for p in pagify(lyrics, page_length=900)]
+            paged_content = list(pagify(lyrics, page_length=900))
             for index, page in enumerate(paged_content):
                 e = discord.Embed(
-                    title="{}".format(title),
+                    title=f"{title}",
                     description=page,
                     colour=await self.bot.get_embed_color(ctx.channel),
                 )
+
                 e.set_footer(
-                    text="Requested by {} | Source: {} | Page: {}/{}".format(
-                        ctx.message.author, source, int(index + 1), len(paged_content)
-                    )
+                    text=f"Requested by {ctx.message.author} | Source: {source} | Page: {int(index + 1)}/{len(paged_content)}"
                 )
+
                 paged_embeds.append(e)
         await menu(ctx, paged_embeds, controls=DEFAULT_CONTROLS, timeout=180.0)
 
@@ -258,7 +250,7 @@ async def getlyrics(artistsong):
             char = percents[char]
         searchquery += char
     session = FuturesSession()
-    future = session.get("https://google.com/search?q=" + searchquery + "+lyrics")
+    future = session.get(f"https://google.com/search?q={searchquery}+lyrics")
     response_one = future.result()
     soup = BeautifulSoup(response_one.text, "html.parser")
     bouncer = "Our systems have detected unusual traffic from your computer network"
@@ -279,8 +271,9 @@ async def getlyrics(artistsong):
             title_, artist_, lyrics_, source_ = (
                 "",
                 "",
-                "Not able to find the lyrics for {}.".format(searchquery),
+                f"Not able to find the lyrics for {searchquery}.",
                 "",
             )
+
     session.close()
     return title_, artist_, lyrics_, source_
