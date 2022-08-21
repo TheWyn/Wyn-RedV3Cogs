@@ -9,10 +9,11 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from .api.base import GenreCollection
 from .api.character import CharacterData
 from .api.media import MediaData
+from .api.staff import StaffData
 from .api.studio import StudioData
 from .api.user import UserData
-from .embed_maker import do_character_embed, do_media_embed, do_studio_embed, do_user_embed
-from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA, USER_SCHEMA
+from .embed_maker import do_character_embed, do_media_embed, do_staff_embed, do_studio_embed, do_user_embed
+from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, STAFF_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA, USER_SCHEMA
 
 
 class AniSearch(commands.Cog):
@@ -201,6 +202,23 @@ class AniSearch(commands.Cog):
                 emb = do_user_embed(page)
                 text = f"{emb.footer.text} • Page {i} of {len(results)}"
                 emb.set_footer(text=text)
+                pages.append(emb)
+
+        await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
+
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.command(aliases=("mangaka", "seiyuu"))
+    async def anistaff(self, ctx: commands.Context, *, name: str):
+        """Get info on any manga or anime staff, seiyuu etc."""
+        async with ctx.typing():
+            results = await StaffData.request(self.session, query=STAFF_SCHEMA, search=name)
+            if type(results) is str:
+                return await ctx.send(results)
+
+            pages = []
+            for i, page in enumerate(results, start=1):
+                emb = do_staff_embed(page)
+                emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
                 pages.append(emb)
 
         await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
