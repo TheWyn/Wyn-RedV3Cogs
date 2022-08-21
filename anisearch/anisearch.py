@@ -10,8 +10,9 @@ from .api.base import GenreCollection
 from .api.character import CharacterData
 from .api.media import MediaData
 from .api.studio import StudioData
-from .embed_maker import do_character_embed, do_media_embed, do_studio_embed
-from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA
+from .api.user import UserData
+from .embed_maker import do_character_embed, do_media_embed, do_studio_embed, do_user_embed
+from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA, USER_SCHEMA
 
 
 class AniSearch(commands.Cog):
@@ -41,7 +42,7 @@ class AniSearch(commands.Cog):
 
             pages = []
             for i, page in enumerate(results, start=1):
-                emb = do_media_embed(page, ctx.channel.is_nsfw())
+                emb = do_media_embed(page, getattr(ctx.channel, 'is_nsfw', False))
                 text = f"{emb.footer.text} • Page {i} of {len(results)}"
                 emb.set_footer(text=text)
                 pages.append(emb)
@@ -61,7 +62,7 @@ class AniSearch(commands.Cog):
 
             pages = []
             for i, page in enumerate(results, start=1):
-                emb = do_media_embed(page, ctx.channel.is_nsfw())
+                emb = do_media_embed(page, getattr(ctx.channel, 'is_nsfw', False))
                 emb.set_footer(text=f"{emb.footer.text} • Page {i} of {len(results)}")
                 pages.append(emb)
 
@@ -86,7 +87,7 @@ class AniSearch(commands.Cog):
 
             pages = []
             for i, page in enumerate(results, start=1):
-                emb = do_media_embed(page, ctx.channel.is_nsfw())
+                emb = do_media_embed(page, getattr(ctx.channel, 'is_nsfw', False))
                 emb.set_footer(text=f"{emb.footer.text} • Page {i} of {len(results)}")
                 pages.append(emb)
 
@@ -147,7 +148,7 @@ class AniSearch(commands.Cog):
                     "See if its valid as per AniList or try again with different genre/tag."
                 )
 
-            emb = do_media_embed(results[0], ctx.channel.is_nsfw())
+            emb = do_media_embed(results[0], getattr(ctx.channel, 'is_nsfw', False))
             await ctx.send(embed=emb)
 
     @commands.bot_has_permissions(embed_links=True)
@@ -182,6 +183,24 @@ class AniSearch(commands.Cog):
             for i, page in enumerate(results, start=1):
                 emb = do_studio_embed(page)
                 emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
+                pages.append(emb)
+
+        await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
+
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
+    async def anilistuser(self, ctx: commands.Context, username: str):
+        """Get info on AniList user account."""
+        async with ctx.typing():
+            results = await UserData.request(self.session, query=USER_SCHEMA, search=username)
+            if type(results) is str:
+                return await ctx.send(results)
+
+            pages = []
+            for i, page in enumerate(results, start=1):
+                emb = do_user_embed(page)
+                text = f"{emb.footer.text} • Page {i} of {len(results)}"
+                emb.set_footer(text=text)
                 pages.append(emb)
 
         await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
