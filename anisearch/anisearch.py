@@ -9,8 +9,9 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from .api.base import GenreCollection
 from .api.character import CharacterData
 from .api.media import MediaData
-from .embed_maker import do_character_embed, do_media_embed
-from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, TAG_SCHEMA
+from .api.studio import StudioData
+from .embed_maker import do_character_embed, do_media_embed, do_studio_embed
+from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA
 
 
 class AniSearch(commands.Cog):
@@ -27,8 +28,8 @@ class AniSearch(commands.Cog):
         """Nothing to delete."""
         return
 
-    @commands.command()
     @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
     async def anime(self, ctx: commands.Context, *, query: str):
         """Fetch info on any anime from given query!"""
         async with ctx.typing():
@@ -47,8 +48,8 @@ class AniSearch(commands.Cog):
 
         await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
 
-    @commands.command(aliases=["manhwa"])
     @commands.bot_has_permissions(embed_links=True)
+    @commands.command(aliases=["manhwa"])
     async def manga(self, ctx: commands.Context, *, query: str):
         """Fetch info on any manga from given query!"""
         async with ctx.typing():
@@ -66,8 +67,8 @@ class AniSearch(commands.Cog):
 
         await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
 
-    @commands.command()
     @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
     # TODO: use typing.Literal for media_type with dpy 2.x
     async def trending(self, ctx: commands.Context, media_type: str):
         """Fetch currently trending animes or manga from AniList!"""
@@ -91,8 +92,8 @@ class AniSearch(commands.Cog):
 
         await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
 
-    @commands.command()
     @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
     # TODO: use typing.Literal for media_type with dpy 2.x
     async def random(self, ctx: commands.Context, media_type: str, *, genre_or_tag: str = ""):
         """Fetch a random anime or manga based on provided genre or tag!
@@ -149,8 +150,8 @@ class AniSearch(commands.Cog):
             emb = do_media_embed(results[0], ctx.channel.is_nsfw())
             await ctx.send(embed=emb)
 
-    @commands.command()
     @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
     async def character(self, ctx: commands.Context, *, query: str):
         """Fetch info on a anime/manga character from given query!"""
         async with ctx.typing():
@@ -163,6 +164,23 @@ class AniSearch(commands.Cog):
             pages = []
             for i, page in enumerate(results, start=1):
                 emb = do_character_embed(page)
+                emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
+                pages.append(emb)
+
+        await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
+
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
+    async def studio(self, ctx: commands.Context, *, name: str):
+        """Fetch info on an animation studio from given name query!"""
+        async with ctx.typing():
+            results = await StudioData.request(self.session, query=STUDIO_SCHEMA, search=name)
+            if type(results) is str:
+                return await ctx.send(results)
+
+            pages = []
+            for i, page in enumerate(results, start=1):
+                emb = do_studio_embed(page)
                 emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
                 pages.append(emb)
 
