@@ -9,11 +9,12 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from .api.base import GenreCollection
 from .api.character import CharacterData
 from .api.media import MediaData
+from .api.schedule import ScheduleData
 from .api.staff import StaffData
 from .api.studio import StudioData
 from .api.user import UserData
-from .embed_maker import do_character_embed, do_media_embed, do_staff_embed, do_studio_embed, do_user_embed
-from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, STAFF_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA, USER_SCHEMA
+from .embed_maker import do_character_embed, do_media_embed, do_schedule_embed, do_staff_embed, do_studio_embed, do_user_embed
+from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, SCHEDULE_SCHEMA, STAFF_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA, USER_SCHEMA
 
 
 class AniSearch(commands.Cog):
@@ -218,6 +219,60 @@ class AniSearch(commands.Cog):
             pages = []
             for i, page in enumerate(results, start=1):
                 emb = do_staff_embed(page)
+                emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
+                pages.append(emb)
+
+        await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
+
+    @commands.command()
+    async def upcoming(self, ctx: commands.Context, summary_version: bool = False):
+        """Fetch list of upcoming animes airing within a day."""
+        async with ctx.typing():
+            results = await ScheduleData.request(
+                self.session, query=SCHEDULE_SCHEMA, perPage=20, notYetAired=True, sort="TIME"
+            )
+            if type(results) is str:
+                return await ctx.send(results)
+
+            if not ctx.channel.permissions_for(ctx.me).embed_links or summary_version:
+                airing = "\n".join(
+                    f"<t:{media.airingAt}:R> • {media.media.title}" for media in results
+                )
+                await ctx.send(f"Upcoming animes in next **24 to 48 hours**:\n\n{airing}")
+                return
+
+            pages = []
+            for i, page in enumerate(results, start=1):
+                emb = do_schedule_embed(page, upcoming=True)
+                emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
+                pages.append(emb)
+
+        await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
+
+    @commands.command()
+    async def lastaired(self, ctx: commands.Context, summary_version: bool = False):
+        """Fetch list of upcoming animes airing within a day."""
+        async with ctx.typing():
+            results = await ScheduleData.request(
+                self.session,
+                query=SCHEDULE_SCHEMA,
+                perPage=20,
+                notYetAired=False,
+                sort="TIME_DESC",
+            )
+            if type(results) is str:
+                return await ctx.send(results)
+
+            if not ctx.channel.permissions_for(ctx.me).embed_links or summary_version:
+                airing = "\n".join(
+                    f"<t:{media.airingAt}:R> • {media.media.title}" for media in results
+                )
+                await ctx.send(f"Recently aired animes in past **24 to 48 hours**:\n\n{airing}")
+                return
+
+            pages = []
+            for i, page in enumerate(results, start=1):
+                emb = do_schedule_embed(page, upcoming=False)
                 emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
                 pages.append(emb)
 

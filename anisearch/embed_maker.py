@@ -6,6 +6,7 @@ from redbot.core.utils.chat_formatting import humanize_number
 from .api.character import CharacterData
 from .api.formatters import format_birth_date, format_description, format_media_type
 from .api.media import MediaData
+from .api.schedule import ScheduleData
 from .api.staff import StaffData
 from .api.studio import StudioData
 from .api.user import UserData
@@ -72,6 +73,26 @@ def do_media_embed(data: MediaData, is_channel_nsfw: bool) -> Embed:
     stats = [f'Type: {format_media_type(data.format or "N/A")}', data.media_status]
     embed.set_footer(text=" • ".join(stats))
     embed.description = description
+    return embed
+
+
+def do_schedule_embed(data: ScheduleData, upcoming: bool) -> Embed:
+    embed = Embed(colour=Colour.from_hsv(random.random(), 0.5, 1.0), title=str(data.media.title))
+    embed.url = data.media.siteUrl
+    when = "airing" if upcoming else "aired"
+    embed.description = (
+        f"Episode **{data.episode}** {when} <t:{data.airingAt}:R>\n\n"
+        f"**Format:**  {format_media_type(data.media.format)}\n"
+    )
+    if data.media.duration:
+        f"**Duration:** {data.media.duration} minutes (average)"
+
+    if data.media.externalLinks:
+        embed.add_field(name="External Links", value=data.external_links)
+
+    air_type = "Upcoming" if upcoming else "Recently Aired"
+    embed.set_author(name=f"{air_type} Anime • Episode Info")
+    embed.set_thumbnail(url=data.media.coverImage.large or "")
     return embed
 
 
