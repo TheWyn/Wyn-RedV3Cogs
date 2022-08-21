@@ -1,16 +1,15 @@
 import asyncio
-import datetime
-import json
-import re
+import random
 
 import aiohttp
 import discord
 from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
+from .api.base import GenreCollection
 from .api.media import MediaData
 from .embed_maker import do_media_embed
-from .schemas import MEDIA_SCHEMA
+from .schemas import GENRE_SCHEMA, MEDIA_SCHEMA, TAG_SCHEMA
 
 
 class AniSearch(commands.Cog):
@@ -90,3 +89,61 @@ class AniSearch(commands.Cog):
                 pages.append(emb)
 
         await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    # TODO: use typing.Literal for media_type with dpy 2.x
+    async def random(self, ctx: commands.Context, media_type: str, *, genre_or_tag: str = ""):
+        """Fetch a random anime or manga based on provided genre or tag!
+
+        **Supported Genres:**
+            - Action, Adventure, Comedy, Drama, Ecchi
+            - Fantasy, Hentai, Horror, Mahou Shoujo, Mecha
+            - Music, Mystery, Psychological, Romance, Schi-Fi
+            - Slice of Life, Sports, Supernatural, Thriller
+
+        You can also use any of the search tags supported on Anilist instead of any of above genres!
+        """
+        if media_type.lower() not in ["anime", "manga"]:
+            return await ctx.send(
+                "Invalid media type provided! Only `manga` or `anime` type is supported!"
+            )
+
+        async with ctx.typing():
+            if not genre_or_tag:
+                genre_or_tag = random.choice(GenreCollection)
+                await ctx.send(
+                    f"Since you didn't provide a genre or tag, I chose a random genre: {genre_or_tag}"
+                )
+
+            get_format = {
+                "anime": ["TV", "TV_SHORT", "MOVIE", "OVA", "ONA"],
+                "manga": ["MANGA", "NOVEL", "ONE_SHOT"],
+            }
+
+            results = await MediaData.request(
+                self.session,
+                query=GENRE_SCHEMA,
+                perPage=1,
+                type=media_type.upper(),
+                genre=genre_or_tag,
+                format_in=get_format[media_type.lower()],
+            )
+            if type(results) is str:
+                results = await MediaData.request(
+                    self.session,
+                    query=TAG_SCHEMA,
+                    perPage=1,
+                    type=media_type.upper(),
+                    tag=genre_or_tag,
+                    format_in=get_format[media_type.lower()],
+                )
+
+            if type(results) is str:
+                return await ctx.send(
+                    f"Could not find a random {media_type} from the given genre or tag.\n"
+                    "See if its valid as per AniList or try again with different genre/tag."
+                )
+
+            emb = do_media_embed(results[0], ctx.channel.is_nsfw())
+            await ctx.send(embed=emb)
