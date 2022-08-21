@@ -7,9 +7,10 @@ from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .api.base import GenreCollection
+from .api.character import CharacterData
 from .api.media import MediaData
-from .embed_maker import do_media_embed
-from .schemas import GENRE_SCHEMA, MEDIA_SCHEMA, TAG_SCHEMA
+from .embed_maker import do_character_embed, do_media_embed
+from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, TAG_SCHEMA
 
 
 class AniSearch(commands.Cog):
@@ -147,3 +148,22 @@ class AniSearch(commands.Cog):
 
             emb = do_media_embed(results[0], ctx.channel.is_nsfw())
             await ctx.send(embed=emb)
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def character(self, ctx: commands.Context, *, query: str):
+        """Fetch info on a anime/manga character from given query!"""
+        async with ctx.typing():
+            results = await CharacterData.request(
+                self.session, query=CHARACTER_SCHEMA, search=query, sort="SEARCH_MATCH"
+            )
+            if type(results) is str:
+                return await ctx.send(results)
+
+            pages = []
+            for i, page in enumerate(results, start=1):
+                emb = do_character_embed(page)
+                emb.set_footer(text=f"Powered by AniList • Page {i} of {len(results)}")
+                pages.append(emb)
+
+        await menu(ctx, pages, DEFAULT_CONTROLS, timeout=120)

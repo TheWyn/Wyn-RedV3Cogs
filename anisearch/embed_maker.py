@@ -3,8 +3,26 @@ import random
 from discord import Colour, Embed
 from redbot.core.utils.chat_formatting import humanize_number
 
+from .api.character import CharacterData
 from .api.formatters import format_birth_date, format_description, format_media_type
 from .api.media import MediaData
+
+
+def do_character_embed(data: CharacterData) -> Embed:
+    emb = Embed(colour=Colour.from_hsv(random.random(), 0.5, 1.0), title=str(data.name))
+    emb.description = data.character_summary
+    emb.url = data.siteUrl or ""
+    emb.set_author(name="Character Info")
+    emb.set_thumbnail(url=data.image.large or "")
+
+    if (dob := data.dateOfBirth) and dob.day and dob.month:
+        emb.add_field(name="Birth Date", value=format_birth_date(dob.day, dob.month))
+    if synonyms := data.name.alternative:
+        emb.add_field(name="Also known as", value=", ".join(synonyms))
+
+    if data.media_nodes:
+        emb.add_field(name="Appearances", value=data.appeared_in, inline=False)
+    return emb
 
 
 def do_media_embed(data: MediaData, is_channel_nsfw: bool) -> Embed:
