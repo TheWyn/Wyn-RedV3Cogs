@@ -1,6 +1,6 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, Union
 
 import aiohttp
 
@@ -67,7 +67,9 @@ class MediaTrailer:
     site: Optional[str]
 
 
-async def fetch_data(session: aiohttp.ClientSession, query: str, **kwargs):
+async def fetch_data(
+    session: aiohttp.ClientSession, query: str, **kwargs
+) -> Union[str, Dict[str, Any]]:
     kwargs["page"] = 1
     if not kwargs.get("perPage"):
         kwargs["perPage"] = 15
