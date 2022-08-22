@@ -12,8 +12,24 @@ from .api.schedule import ScheduleData
 from .api.staff import StaffData
 from .api.studio import StudioData
 from .api.user import UserData
-from .embed_maker import do_character_embed, do_media_embed, do_schedule_embed, do_staff_embed, do_studio_embed, do_user_embed
-from .schemas import CHARACTER_SCHEMA, GENRE_SCHEMA, MEDIA_SCHEMA, SCHEDULE_SCHEMA, STAFF_SCHEMA, STUDIO_SCHEMA, TAG_SCHEMA, USER_SCHEMA
+from .embed_maker import (
+    do_character_embed,
+    do_media_embed,
+    do_schedule_embed,
+    do_staff_embed,
+    do_studio_embed,
+    do_user_embed,
+)
+from .schemas import (
+    CHARACTER_SCHEMA,
+    GENRE_SCHEMA,
+    MEDIA_SCHEMA,
+    SCHEDULE_SCHEMA,
+    STAFF_SCHEMA,
+    STUDIO_SCHEMA,
+    TAG_SCHEMA,
+    USER_SCHEMA,
+)
 
 
 class AniSearch(commands.Cog):
@@ -44,14 +60,17 @@ class AniSearch(commands.Cog):
         """Fetch info on any anime from given query!"""
         async with ctx.typing():
             results = await MediaData.request(
-                self.session, query=MEDIA_SCHEMA, search=query, type="ANIME",
+                self.session,
+                query=MEDIA_SCHEMA,
+                search=query,
+                type="ANIME",
             )
             if isinstance(results, NotFound):
                 return await ctx.send(str(results))
 
             pages = []
             for i, page in enumerate(results, start=1):
-                emb = do_media_embed(page, getattr(ctx.channel, 'is_nsfw', False))
+                emb = do_media_embed(page, getattr(ctx.channel, "is_nsfw", False))
                 text = f"{emb.footer.text} • Page {i} of {len(results)}"
                 emb.set_footer(text=text)
                 pages.append(emb)
@@ -64,14 +83,17 @@ class AniSearch(commands.Cog):
         """Fetch info on any manga from given query!"""
         async with ctx.typing():
             results = await MediaData.request(
-                self.session, query=MEDIA_SCHEMA, search=query, type="MANGA",
+                self.session,
+                query=MEDIA_SCHEMA,
+                search=query,
+                type="MANGA",
             )
             if isinstance(results, NotFound):
                 return await ctx.send(str(results))
 
             pages = []
             for i, page in enumerate(results, start=1):
-                emb = do_media_embed(page, getattr(ctx.channel, 'is_nsfw', False))
+                emb = do_media_embed(page, getattr(ctx.channel, "is_nsfw", False))
                 emb.set_footer(text=f"{emb.footer.text} • Page {i} of {len(results)}")
                 pages.append(emb)
 
@@ -96,7 +118,7 @@ class AniSearch(commands.Cog):
 
             pages = []
             for i, page in enumerate(results, start=1):
-                emb = do_media_embed(page, getattr(ctx.channel, 'is_nsfw', False))
+                emb = do_media_embed(page, getattr(ctx.channel, "is_nsfw", False))
                 emb.set_footer(text=f"{emb.footer.text} • Page {i} of {len(results)}")
                 pages.append(emb)
 
@@ -157,7 +179,7 @@ class AniSearch(commands.Cog):
                     "See if its valid as per AniList or try again with different genre/tag."
                 )
 
-            emb = do_media_embed(results[0], getattr(ctx.channel, 'is_nsfw', False))
+            emb = do_media_embed(results[0], getattr(ctx.channel, "is_nsfw", False))
             await ctx.send(embed=emb)
 
     @commands.bot_has_permissions(embed_links=True)
@@ -241,7 +263,7 @@ class AniSearch(commands.Cog):
             if isinstance(results, NotFound):
                 return await ctx.send(str(results))
 
-            if not ctx.channel.permissions_for(ctx.me).embed_links or summary_version: # type: ignore
+            if not ctx.channel.permissions_for(ctx.me).embed_links or summary_version:  # type: ignore
                 airing = "\n".join(
                     f"<t:{media.airingAt}:R> • {media.media.title}" for media in results
                 )
@@ -270,7 +292,7 @@ class AniSearch(commands.Cog):
             if isinstance(results, NotFound):
                 return await ctx.send(str(results))
 
-            if not ctx.channel.permissions_for(ctx.me).embed_links or summary_version: # type: ignore
+            if not ctx.channel.permissions_for(ctx.me).embed_links or summary_version:  # type: ignore
                 airing = "\n".join(
                     f"<t:{media.airingAt}:R> • {media.media.title}" for media in results
                 )

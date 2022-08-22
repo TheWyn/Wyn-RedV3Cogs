@@ -76,9 +76,7 @@ class NotFound:
         return f"https://http.cat/{self.status}.jpg" if self.status else self.message
 
 
-async def fetch_data(
-    session: aiohttp.ClientSession, query: str, **kwargs
-) -> Dict[str, Any]:
+async def fetch_data(session: aiohttp.ClientSession, query: str, **kwargs) -> Dict[str, Any]:
     kwargs["page"] = 1
     if not kwargs.get("perPage"):
         kwargs["perPage"] = 15

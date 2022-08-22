@@ -8,7 +8,15 @@ from discord import Colour
 from html import unescape
 from textwrap import shorten
 
-from .base import CoverImage, DateModel, ExternalSite, MediaTitle, MediaTrailer, NotFound, fetch_data
+from .base import (
+    CoverImage,
+    DateModel,
+    ExternalSite,
+    MediaTitle,
+    MediaTrailer,
+    NotFound,
+    fetch_data,
+)
 from .formatters import HANDLE, format_anime_status, format_manga_status
 
 
