@@ -31,9 +31,11 @@ class DateModel:
     def __str__(self) -> str:
         if not self.day:
             return str(self.year or "TBD?")
-        if not self.year:
-            return format_birth_date(self.day, self.month)
-        return format_date(self.day, self.month, self.year)
+        return (
+            format_date(self.day, self.month, self.year)
+            if self.year
+            else format_birth_date(self.day, self.month)
+        )
 
     @property
     def humanize_date(self) -> str:

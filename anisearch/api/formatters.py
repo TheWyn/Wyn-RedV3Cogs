@@ -82,8 +82,7 @@ def format_manga_status(media_status: str) -> str:
 
 def clean_html(raw_text) -> str:
     clean = re.compile("<.*?>")
-    clean_text = re.sub(clean, "", raw_text)
-    return clean_text
+    return re.sub(clean, "", raw_text)
 
 
 def format_description(description: str, length: int = 4086) -> str:
@@ -93,13 +92,12 @@ def format_description(description: str, length: int = 4086) -> str:
     if len(description) > length:
         description = description[:length]
         if description.count("||") > 0 and (description.count("|") % 4) != 0:
-            return description + " || …"
-        return description + " …"
+            return f"{description} || …"
+        return f"{description} …"
 
     return description
 
 
 def format_date(day: int, month: int, year: int) -> str:
     datetime_obj = datetime(year=year, month=month, day=day)
-    date = f"<t:{int(datetime_obj.timestamp())}:D>"
-    return date
+    return f"<t:{int(datetime_obj.timestamp())}:D>"

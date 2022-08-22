@@ -22,10 +22,11 @@ class MediaNode:
     def episodes_count(self) -> str:
         if self.format == "MOVIE":
             return ""
-        if not self.episodes:
-            return f"  »  `{format_anime_status(self.status)}`"
-
-        return f"  »  **{self.episodes}** {'episodes' if self.episodes > 1 else 'episode'}"
+        return (
+            f"  »  **{self.episodes}** {'episodes' if self.episodes > 1 else 'episode'}"
+            if self.episodes
+            else f"  »  `{format_anime_status(self.status)}`"
+        )
 
     @classmethod
     def from_data(cls, data: dict) -> MediaNode:
@@ -52,7 +53,8 @@ class StudioData:
             return NotFound(**result)
 
         all_studios = result.get("data", {}).get("Page", {}).get("studios", [])
-        if not all_studios:
-            return NotFound(f"Sad trombone. No results!")
-
-        return [cls.from_data(item) for item in all_studios]
+        return (
+            [cls.from_data(item) for item in all_studios]
+            if all_studios
+            else NotFound("Sad trombone. No results!")
+        )
