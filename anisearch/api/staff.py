@@ -66,7 +66,8 @@ class StaffData:
             return NotFound(**result)
 
         all_items = result.get("data", {}).get("Page", {}).get("staff", [])
-        if not all_items:
-            return NotFound(f"Sad trombone. No results!")
-
-        return [cls.from_data(item) for item in all_items]
+        return (
+            [cls.from_data(item) for item in all_items]
+            if all_items
+            else NotFound("Sad trombone. No results!")
+        )

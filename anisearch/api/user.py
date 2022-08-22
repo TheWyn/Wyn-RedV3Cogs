@@ -54,10 +54,7 @@ class UserData:
 
     @property
     def previous_username(self) -> str:
-        if not self.previousNames:
-            return ""
-
-        return self.previousNames[0].name
+        return self.previousNames[0].name if self.previousNames else ""
 
     @classmethod
     def from_data(cls, data: dict) -> UserData:
@@ -76,7 +73,8 @@ class UserData:
             return NotFound(**result)
 
         all_items = result.get("data", {}).get("Page", {}).get("users", [])
-        if not all_items:
-            return NotFound(f"Sad trombone. No results!")
-
-        return [cls.from_data(item) for item in all_items]
+        return (
+            [cls.from_data(item) for item in all_items]
+            if all_items
+            else NotFound("Sad trombone. No results!")
+        )
