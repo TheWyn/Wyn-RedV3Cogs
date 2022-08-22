@@ -40,8 +40,11 @@ class AniSearch(commands.Cog):
 
     def format_help_for_context(self, ctx: commands.Context) -> str:
         """Thanks Sinbad!"""
-        pre_processed = super().format_help_for_context(ctx)
-        return f"{pre_processed}\n\nCog Version: {self.__version__}"
+        return (
+            f"{super().format_help_for_context(ctx)}\n\n"
+            f"**Authors:** {', '.join(self.__authors__)}\n"
+            f"**Cog version:** {self.__version__}"
+        )
 
     def __init__(self, bot):
         self.bot = bot
