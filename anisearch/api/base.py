@@ -1,6 +1,6 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence
 
 import aiohttp
 
@@ -67,9 +67,18 @@ class MediaTrailer:
     site: Optional[str]
 
 
+@dataclass
+class NotFound:
+    message: str
+    status: Optional[int] = None
+
+    def __str__(self) -> str:
+        return f"https://http.cat/{self.status}.jpg" if self.status else self.message
+
+
 async def fetch_data(
     session: aiohttp.ClientSession, query: str, **kwargs
-) -> Union[str, Dict[str, Any]]:
+) -> Dict[str, Any]:
     kwargs["page"] = 1
     if not kwargs.get("perPage"):
         kwargs["perPage"] = 15
@@ -78,13 +87,13 @@ async def fetch_data(
             "https://graphql.anilist.co", json={"query": query, "variables": kwargs}
         ) as response:
             if response.status != 200:
-                return f"https://http.cat/{response.status}.jpg"
+                return {"status": response.status, "message": "An error occurred."}
             result: dict = await response.json()
     except (aiohttp.ClientError, asyncio.TimeoutError):
-        return f"https://http.cat/408.jpg"
+        return {"status": 408, "message": "Operation timed out."}
 
     if err := result.get("errors"):
-        return f"{err[0]['message']} (Status: {err[0]['status']})"
+        return {"message": f"{err[0]['message']} (Status: {err[0]['status']})"}
     return result
 
 

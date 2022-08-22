@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Sequence
 
-from .base import MediaTitle, fetch_data
+from .base import MediaTitle, NotFound, fetch_data
 from .formatters import format_anime_status
 
 
@@ -46,13 +46,13 @@ class StudioData:
         return cls(media_nodes=[MediaNode.from_data(node) for node in nodes], **data)
 
     @classmethod
-    async def request(cls, session, query: str, **kwargs) -> str | Sequence[StudioData]:
+    async def request(cls, session, query: str, **kwargs) -> NotFound | Sequence[StudioData]:
         result = await fetch_data(session, query, **kwargs)
-        if type(result) is str:
-            return result
+        if result.get("message"):
+            return NotFound(**result)
 
         all_studios = result.get("data", {}).get("Page", {}).get("studios", [])
         if not all_studios:
-            return f"Sad trombone. No results!"
+            return NotFound(f"Sad trombone. No results!")
 
         return [cls.from_data(item) for item in all_studios]

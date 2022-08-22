@@ -8,7 +8,7 @@ from discord import Colour
 from html import unescape
 from textwrap import shorten
 
-from .base import CoverImage, DateModel, ExternalSite, MediaTitle, MediaTrailer, fetch_data
+from .base import CoverImage, DateModel, ExternalSite, MediaTitle, MediaTrailer, NotFound, fetch_data
 from .formatters import HANDLE, format_anime_status, format_manga_status
 
 
@@ -115,13 +115,13 @@ class MediaData:
         )
 
     @classmethod
-    async def request(cls, session, query: str, **kwargs) -> str | Sequence[MediaData]:
+    async def request(cls, session, query: str, **kwargs) -> NotFound | Sequence[MediaData]:
         result = await fetch_data(session, query, **kwargs)
-        if type(result) is str:
-            return result
+        if result.get("message"):
+            return NotFound(**result)
 
         all_items = result.get("data", {}).get("Page", {}).get("media", [])
         if not all_items:
-            return f"Sad trombone. No results!"
+            return NotFound(message=f"Sad trombone. No results!")
 
         return [cls.from_data(item) for item in all_items]
