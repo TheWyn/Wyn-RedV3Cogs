@@ -146,11 +146,12 @@ class AniSearch(commands.Cog):
                 "Invalid media type provided! Only `manga` or `anime` type is supported!"
             )
 
+        all_genres = list(map(str.lower, GenreCollection))
         async with ctx.typing():
             if not genre_or_tag:
                 genre_or_tag = random.choice(GenreCollection)
                 await ctx.send(
-                    f"Since you didn't provide a genre or tag, I chose a random genre: {genre_or_tag}"
+                    f"No genre or tag provided, so I chose random genre: **{genre_or_tag}**"
                 )
 
             get_format = {
@@ -160,21 +161,12 @@ class AniSearch(commands.Cog):
 
             results = await MediaData.request(
                 self.session,
-                query=GENRE_SCHEMA,
+                query=GENRE_SCHEMA if genre_or_tag.lower() in all_genres else TAG_SCHEMA,
                 perPage=1,
                 type=media_type.upper(),
                 genre=genre_or_tag,
                 format_in=get_format[media_type.lower()],
             )
-            if isinstance(results, NotFound):
-                results = await MediaData.request(
-                    self.session,
-                    query=TAG_SCHEMA,
-                    perPage=1,
-                    type=media_type.upper(),
-                    tag=genre_or_tag,
-                    format_in=get_format[media_type.lower()],
-                )
 
             if isinstance(results, NotFound):
                 return await ctx.send(
