@@ -61,7 +61,7 @@ def format_anime_status(media_status: str) -> str:
     AnimeStatus = {
         "FINISHED": "Finished",
         "RELEASING": "Currently Airing",
-        "NOT_YET_RELEASED": "Unreleased",
+        "NOT_YET_RELEASED": "Not Yet Released",
         "CANCELLED": "Cancelled",
     }
     return AnimeStatus.get(media_status, "Unknown")
@@ -71,7 +71,7 @@ def format_manga_status(media_status: str) -> str:
     MangaStatus = {
         "FINISHED": "Finished",
         "RELEASING": "Currently Publishing",
-        "NOT_YET_RELEASED": "Unreleased",
+        "NOT_YET_RELEASED": "Not Yet Released",
         "CANCELLED": "Cancelled",
         "None": "Unknown",
     }

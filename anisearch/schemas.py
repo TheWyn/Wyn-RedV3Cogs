@@ -111,8 +111,9 @@ query ($page: Int, $perPage: Int, $search: String, $type: MediaType, $sort: [Med
       id
       idMal
       title {
-        romaji
         english
+        native
+        romaji
       }
       coverImage {
         large

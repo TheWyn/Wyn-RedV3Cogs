@@ -56,8 +56,9 @@ class ExternalSite:
 
 @dataclass
 class MediaTitle:
-    romaji: Optional[str]
-    english: Optional[str]
+    english: Optional[str] = None
+    romaji: Optional[str] = None
+    native: Optional[str] = None
 
     def __str__(self) -> str:
         return self.romaji or self.english or "Title ???"
