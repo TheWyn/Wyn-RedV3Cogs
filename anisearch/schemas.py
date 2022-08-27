@@ -269,6 +269,7 @@ query ($page: Int, $perPage: Int, $search: String) {
         nodes {
           episodes
           format
+          isAdult
           siteUrl
           status
           title {
