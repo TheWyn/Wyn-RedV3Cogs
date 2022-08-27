@@ -14,12 +14,9 @@ class Name:
     alternative: Sequence[str] = field(default_factory=list)
 
     def __str__(self) -> str:
-        # This is a very rare possibility, so future-proof it in case
-        if not self.full and not self.native and not self.alternative:
-            return "NAME MISSING ???"
         # https://anilist.co/character/135069 - both full and native name can be null
-        if not self.full and not self.native and self.alternative:
-            return " • ".join(self.alternative)
+        if not self.full and not self.native:
+            return " • ".join(self.alternative) if self.alternative else "NAME MISSING ???"
         if self.full and self.native and self.full == self.native:
             return self.full
 

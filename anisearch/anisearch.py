@@ -324,7 +324,7 @@ class AniSearch(commands.Cog):
         """[For Admins] Setting toggle to show NSFW anime/manga results in this server!"""
         toggle_state: bool = await self.config.guild(ctx.guild).SHOW_ADULT_MEDIA()
         await self.config.guild(ctx.guild).SHOW_ADULT_MEDIA.set(not toggle_state)
-        show_or_hide = "**SHOW**" if not toggle_state is True else "**HIDE**"
+        show_or_hide = "**HIDE**" if toggle_state else "**SHOW**"
         msg = f"I will now {show_or_hide} embed preview for adult animes/mangas in this server!\n"
         if toggle_state:
             msg += "The embed preview for adult animes/manga will only show up in NSFW channels!"
