@@ -29,7 +29,6 @@ def format_birth_date(day: int, month: int) -> str:
 
 def format_media_type(media_type: str) -> str:
     MediaType = {
-        "N/A": "Unknown",
         # Anime broadcast on television
         "TV": "TV",
         # Anime which are under 15 minutes in length and broadcast on television
@@ -55,7 +54,7 @@ def format_media_type(media_type: str) -> str:
         # Manga with just one chapter; often called yomikiri (読み切り)
         "ONE_SHOT": "One-shot manga",
     }
-    return MediaType[media_type]
+    return MediaType.get(media_type, "Unknown")
 
 
 def format_anime_status(media_status: str) -> str:
@@ -64,9 +63,8 @@ def format_anime_status(media_status: str) -> str:
         "RELEASING": "Currently Airing",
         "NOT_YET_RELEASED": "Unreleased",
         "CANCELLED": "Cancelled",
-        "None": "Unknown",
     }
-    return AnimeStatus[media_status]
+    return AnimeStatus.get(media_status, "Unknown")
 
 
 def format_manga_status(media_status: str) -> str:
@@ -77,10 +75,10 @@ def format_manga_status(media_status: str) -> str:
         "CANCELLED": "Cancelled",
         "None": "Unknown",
     }
-    return MangaStatus[media_status]
+    return MangaStatus.get(media_status, "Unknown")
 
 
-def clean_html(raw_text) -> str:
+def clean_html(raw_text: str) -> str:
     clean = re.compile("<.*?>")
     return re.sub(clean, "", raw_text)
 
