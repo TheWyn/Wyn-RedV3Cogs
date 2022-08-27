@@ -29,13 +29,17 @@ def do_character_embed(data: CharacterData) -> Embed:
     return emb
 
 
-def do_media_embed(data: MediaData, is_channel_nsfw: bool) -> Embed:
+def do_media_embed(data: MediaData, hide_adult_media: bool) -> Embed:
     description = format_description(data.description or "", 500) + "\n\n"
     embed = Embed(colour=data.prominent_colour, title=str(data.title), url=data.siteUrl or "")
 
-    if data.isAdult and not is_channel_nsfw:
+    if data.isAdult and not hide_adult_media:
         embed.colour = 0xFF0000
         embed.description = f"This {data.type.lower()} is marked as 🔞 NSFW on AniList."
+        embed.add_field(
+            name="Server admins can opt to show this preview in SFW channels...",
+            value="by running `[p]anilistset shownsfw` command! Replace `[p]` with my prefix!",
+        )
         embed.set_footer(text="Try again in NSFW channel to see full embed!")
         return embed
 
