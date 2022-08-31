@@ -91,7 +91,7 @@ def do_schedule_embed(data: ScheduleData, upcoming: bool) -> Embed:
         f"**Format:**  {format_media_type(data.media.format)}\n"
     )
     if data.media.duration:
-        f"**Duration:** {data.media.duration} minutes (average)"
+        embed.description += f"**Duration:** {data.media.duration} minutes\n"
 
     if data.media.externalLinks:
         embed.add_field(name="External Links", value=data.external_links)
