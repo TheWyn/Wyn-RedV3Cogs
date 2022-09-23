@@ -1,3 +1,6 @@
+from discord.utils import maybe_coroutine
+from redbot.core.bot import Red
+
 from .anisearch import AniSearch
 
 __red_end_user_data_statement__ = (
@@ -5,6 +8,5 @@ __red_end_user_data_statement__ = (
 )
 
 
-def setup(bot):
-    n = AniSearch(bot)
-    bot.add_cog(n)
+async def setup(bot: Red):
+    await maybe_coroutine(bot.add_cog, AniSearch(bot))
